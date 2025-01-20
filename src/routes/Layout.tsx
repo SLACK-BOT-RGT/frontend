@@ -1,20 +1,28 @@
-import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+// import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
-import { fetchChannels } from "../store/thunks";
-import { RootState } from "../store/store";
-import { useAppDispatch, useAppSelector } from "../hooks/hooks";
+// import { fetchChannels } from "../store/thunks";
+import { useQuery } from "@tanstack/react-query";
+// import { RootState } from "../store/store";
+import { useAppDispatch } from "../hooks/hooks";
 // import { useFetchData } from "../hooks/useFetchData";
 import Loading from "../components/Loading";
 import SideBar from "../components/sideBar";
 import MainBody from "../components/MainBody";
+import { fetchAllChannels } from "../api/team_members";
+import { setChannels } from "../store/channelsSlice";
 
 const Layout = () => {
-  const { channels, loading, error } = useAppSelector(
-    (state: RootState) => state.channels
-  );
+  const { data: channels, isLoading } = useQuery({
+    queryFn: fetchAllChannels,
+    queryKey: ["channels"],
+  });
+
+  // const { channels, loading, error } = useAppSelector(
+  //   (state: RootState) => state.channels
+  // );
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   // const { orgId } = useParams();
 
   // useFetchData(orgId);
@@ -22,28 +30,27 @@ const Layout = () => {
   const [isSidebarVisible, setSidebarVisible] = useState(true);
 
   useEffect(() => {
-    dispatch(fetchChannels());
-  }, [dispatch]);
+    dispatch(setChannels(channels));
+  }, [dispatch, channels]);
 
-  useEffect(() => {
-    console.log('====================================');
-    console.log("In");
-    console.log('====================================');
-    if (error === "401" || error === "403") navigate("/login");
-  }, [error, navigate]);
+  // useEffect(() => {
+  //   console.log('====================================');
+  //   console.log("In");
+  //   console.log('====================================');
+  //   if (error === "401" || error === "403") navigate("/login");
+  // }, [error, navigate]);
 
   const toggleSidebar = () => setSidebarVisible(!isSidebarVisible);
 
-  if (loading) return <Loading />;
+  if (isLoading) return <Loading />;
 
   return (
     <div className="flex w-screen h-screen justify-end bg-custom-secondary">
       <SideBar isSidebarVisible={isSidebarVisible} />
 
       <MainBody
-        error={error}
+        // error={error}
         isSidebarVisible={isSidebarVisible}
-        channels={channels}
         toggleSidebar={toggleSidebar}
       />
     </div>
