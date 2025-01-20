@@ -25,6 +25,7 @@ import {
 import {
   Download,
   Calendar as CalendarIcon,
+  
   Filter,
   Search,
 } from "lucide-react";
@@ -136,14 +137,17 @@ const StandupDashboard = () => {
         <div className="flex space-x-2">
           <Button className="bg-indigo-600 hover:bg-indigo-700">
             <Download className="h-4 w-4 mr-2" />
-            Export Data
+          
+            <button onClick={onClick} className={className}>
+      {label}
+    </button>
           </Button>
         </div>
       </div>
 
       {/* Filters Section */}
       <Card className="bg-custom-secondary border-custom-secondary">
-        <CardHeader>
+      <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle className="text-gray-100">Filters</CardTitle>
             <Button
