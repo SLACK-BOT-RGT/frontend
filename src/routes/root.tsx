@@ -5,6 +5,7 @@ import Layout from "./Layout";
 import PassCode from "./passcode";
 import Login from "../Pages/Login";
 import ChannelDashBoard from "../Pages/ChannelDashBoard";
+import StandupDashboard from "../Pages/StandupDashboard";
 
 // const isAuthenticated = () => {
 //   return localStorage.getItem("accesstoken") !== null;
@@ -14,29 +15,28 @@ import ChannelDashBoard from "../Pages/ChannelDashBoard";
 //   return isAuthenticated() ? <Navigate to="/login" /> : element;
 // };
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
+
 const Root: React.FC = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/passcode" element={<PassCode />} />
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/passcode" element={<PassCode />} />
 
-        {/* <Route path="/" element={<PrivateRoute element={<Layout />} />}> */}
-        <Route path="/" element={<Layout />} >
-          <Route
-            index
-            element={
-              <div className="flex justify-center items-center pt-10">
-                <p className="text-gray-300">Select Channel</p>
-              </div>
-            }
-          />
-          <Route path="channel/">
-          <Route path=":channel-id" element={<ChannelDashBoard/>}/>
+          {/* <Route path="/" element={<PrivateRoute element={<Layout />} />}> */}
+          <Route path="/" element={<Layout />}>
+            <Route index element={<StandupDashboard />} />
+            <Route path="channel/">
+              <Route path=":channel_id" element={<ChannelDashBoard />} />
+            </Route>
           </Route>
-        </Route>
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 };
 

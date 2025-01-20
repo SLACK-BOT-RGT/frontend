@@ -18,7 +18,7 @@ export const organizationSlice = createSlice({
     name: 'organization',
     initialState,
     reducers: {
-        setOrganization: (state, action: PayloadAction<ChannelState['channels']>) => {
+        setChannels: (state, action: PayloadAction<ChannelState['channels']>) => {
             state.channels = action.payload
         },
         // setOrganizationUsers: (state, action: PayloadAction<InvitesInfo[]>) => {
@@ -51,6 +51,6 @@ export const organizationSlice = createSlice({
     },
 })
 
-export const { setOrganization, clearOrganization } = organizationSlice.actions
+export const { setChannels, clearOrganization } = organizationSlice.actions
 
 export default organizationSlice.reducer

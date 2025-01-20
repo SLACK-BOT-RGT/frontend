@@ -15,13 +15,12 @@ interface SideBarProps {
 
 const SideBar: React.FC<SideBarProps> = ({ isSidebarVisible }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { channels, loading, error } = useAppSelector(
-    (state: RootState) => state.channels
-  );
+  // const { channels }: { channels: Channel[] } = useOutletContext();
+  const { channels } = useAppSelector((state: RootState) => state.channels);
 
-  if (loading) return <p>Loading...</p>;
+  // if (loading) return <p>Loading...</p>;
 
-  if (error) return <p>{error.toString()}</p>;
+  // if (error) return <p>{error.toString()}</p>;
 
   const storedUserData = localStorage.getItem("userData");
 
