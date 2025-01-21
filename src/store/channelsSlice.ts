@@ -32,7 +32,7 @@ const initialState: ChannelState = {
 }
 
 export const organizationSlice = createSlice({
-    name: 'organization',
+    name: 'channels',
     initialState,
     reducers: {
         setChannels: (state, action: PayloadAction<ChannelState['channels']>) => {

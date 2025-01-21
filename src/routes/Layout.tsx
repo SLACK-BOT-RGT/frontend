@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAppDispatch } from "../hooks/hooks";
 // import { useFetchData } from "../hooks/useFetchData";
 import Loading from "../components/Loading";
-import SideBar from "../components/sideBar";
+import SideBar from "../components/SideBar";
 import MainBody from "../components/MainBody";
 import { fetchAllChannels } from "../api/team_members";
 import { setChannels } from "../store/channelsSlice";

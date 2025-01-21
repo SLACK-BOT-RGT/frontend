@@ -11,46 +11,104 @@ import {
 } from "../api/team_members";
 import { useAppSelector } from "../hooks/hooks";
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import Loading from "../components/Loading";
+// import { useQuery } from "@tanstack/react-query";
+// import Loading from "../components/Loading";
 import TeamMembers from "../components/team/TeamMembers";
-import TeamOverview from "../components/team/TeamOverview";
+import TeamOverview, { IStatus } from "../components/team/TeamOverview";
 import TeamSettings from "../components/team/TeamSettings";
 import TeamResponses from "../components/team/TeamResponses";
+import { useEffect, useState } from "react";
+import { ITeamMember } from "../types/interfaces";
+import { useQuery } from "@tanstack/react-query";
 
 const ChannelDashBoard = () => {
+  const [teamMembers, setTeamMembers] = useState<ITeamMember[]>([]);
+  const [teamMembersStatusToday, setTeamMembersStatusToday] = useState<
+    IStatus[]
+  >([]);
+  const [teamMembersStatusWeek, setTeamMembersStatusWeek] = useState<IStatus[]>(
+    []
+  );
+
   const { channel_id } = useParams();
 
   const { channels } = useAppSelector((state) => state.channels);
 
   const channel = channels?.find((item) => item.id.toString() === channel_id);
 
-  const { data: team_members, isLoading } = useQuery({
+  const { data: team_members } = useQuery<ITeamMember[]>({
     queryFn: fetchTeamMembers,
     queryKey: ["team-members"],
   });
 
-  const { data: team_members_status_today } = useQuery({
-    queryFn: handleMembersResponsesStatusToday,
-    queryKey: ["team-members-status-today"],
-  });
-  const { data: team_members_status_week } = useQuery({
-    queryFn: handleMembersResponsesStatusWeek,
-    queryKey: ["team-members-status-week"],
-  });
+  // const { data: team_members_status_today } = useQuery<IStatus[]>({
+  //   queryFn: handleMembersResponsesStatusToday,
+  //   queryKey: ["team-members-status-today"],
+  // });
 
-  async function handleMembersResponsesStatusToday() {
-    return await fetchMembersResponsesStatusToday({
-      team_id: channel_id as string,
-    });
-  }
-  async function handleMembersResponsesStatusWeek() {
-    return await fetchMembersResponsesStatusWeek({
-      team_id: channel_id as string,
-    });
-  }
+  // const { data: team_members_status_week } = useQuery<IStatus[]>({
+  //   queryFn: handleMembersResponsesStatusWeek,
+  //   queryKey: ["team-members-status-week"],
+  // });
 
-  if (isLoading) return <Loading />;
+  // async function handleMembersResponsesStatusToday() {
+  //   return await fetchMembersResponsesStatusToday({
+  //     team_id: channel_id as string,
+  //   });
+  // }
+  // async function handleMembersResponsesStatusWeek() {
+  //   return await fetchMembersResponsesStatusWeek({
+  //     team_id: channel_id as string,
+  //   });
+  // }
+
+  useEffect(() => {
+    if (team_members) {
+      setTeamMembers(team_members.filter((item) => item.team_id == channel_id));
+    }
+    // if()
+    // setTeamMembersStatusToday(team_members_status_today || []);
+    // setTeamMembersStatusWeek(team_members_status_week || []);
+  }, [
+    channel_id,
+    team_members,
+    // team_members_status_today,
+    // team_members_status_week,
+  ]);
+  // useEffect(() => {
+  //   queryClient.invalidateQueries({ queryKey: ["team-members"] });
+  //   queryClient.invalidateQueries({ queryKey: ["eam-members-status-today"] });
+  //   queryClient.invalidateQueries({ queryKey: ["team-members-status-week"] });
+  // }, [channel_id, queryClient]);
+  // useEffect(() => {
+  //   async function fetchData() {
+  //     const team_members: ITeamMember[] = await fetchTeamMembers();
+  //     setTeamMembers(team_members.filter((item) => item.team_id == channel_id));
+  //   }
+  //   fetchData();
+  // }, [channel_id]);
+
+  useEffect(() => {
+    async function fetchData() {
+      const team_members_status_today = await fetchMembersResponsesStatusToday({
+        team_id: channel_id as string,
+      });
+      setTeamMembersStatusToday(team_members_status_today);
+    }
+    fetchData();
+  }, [channel_id]);
+
+  useEffect(() => {
+    async function fetchData() {
+      const team_members_status_week = await fetchMembersResponsesStatusWeek({
+        team_id: channel_id as string,
+      });
+      setTeamMembersStatusWeek(team_members_status_week);
+    }
+    fetchData();
+  }, [channel_id]);
+
+  // if (isLoading) return <Loading />;
 
   return (
     <div className="min-h-screen bg-custom-primary p-8">
@@ -74,13 +132,13 @@ const ChannelDashBoard = () => {
           </TabsList>
 
           <TeamOverview
-            team_members={team_members}
+            team_members={teamMembers}
             channel_id={channel_id || ""}
-            team_members_status_today={team_members_status_today || []}
-            team_members_status_week={team_members_status_week || []}
+            team_members_status_today={teamMembersStatusToday || []}
+            team_members_status_week={teamMembersStatusWeek || []}
           />
 
-          <TeamMembers team_members={team_members} />
+          <TeamMembers team_members={teamMembers} />
 
           {/* Add detailed participation analytics */}
           {/* <TabsContent value="participation">

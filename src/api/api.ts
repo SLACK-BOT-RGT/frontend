@@ -24,36 +24,7 @@ export const fetchOrganizationUsers = async ({ organizationId }: { organizationI
 
 }
 
-export const handlePassCode = async ({ passcode, accessToken }: { passcode: string, accessToken: string | null }) => {
 
-    try {
-        const response = await axios.post(`${API_URL}/auth/login`, {
-            passcode
-        }, {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        });
-
-        const { data, accesstoken } = response.data;
-
-        if (response.status == 200) {
-            localStorage.setItem("userData", JSON.stringify(data));
-            localStorage.setItem("accesstoken", accesstoken);
-        }
-
-
-    } catch (error: unknown) {
-
-        if (axios.isAxiosError(error)) {
-            if (error.response?.status === 401) {
-                return { success: false, status: 401 };
-            }
-        }
-        throw error;
-    }
-
-}
 
 
 export const removeOrganizationUser = async ({ user_id, organizationId }: { user_id: string, organizationId: string | undefined }) => {

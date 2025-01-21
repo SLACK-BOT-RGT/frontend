@@ -125,7 +125,7 @@ const TeamResponses = ({ channel_id }: TeamResponsesProps) => {
               ))
             ) : (
               <div className="text-center py-8 text-gray-400">
-                No entries found matching your filters
+                No entries found
               </div>
             )}
           </div>

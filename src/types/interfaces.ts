@@ -4,6 +4,7 @@ export interface IUser {
     id: string;
     name: string;
     timeZone: string;
+    is_admin: boolean;
 }
 export interface ITeamMember {
     createdAt: string;

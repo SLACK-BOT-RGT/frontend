@@ -1,12 +1,12 @@
 import { IoIosArrowDown } from "react-icons/io";
 import { IoSettingsSharp } from "react-icons/io5";
-import { HiMiniPlusSmall } from "react-icons/hi2";
 import { TbLogout } from "react-icons/tb";
 import { useState } from "react";
 import { useAppSelector } from "../hooks/hooks";
 import { RootState } from "../store/store";
-import { NavLink } from "react-router-dom";
+import { NavLink, useParams } from "react-router-dom";
 import { IUser } from "../types/interfaces";
+import AddTeam from "./AddTeam";
 
 interface SideBarProps {
   id?: number;
@@ -17,6 +17,7 @@ const SideBar: React.FC<SideBarProps> = ({ isSidebarVisible }) => {
   const [isOpen, setIsOpen] = useState(false);
   // const { channels }: { channels: Channel[] } = useOutletContext();
   const { channels } = useAppSelector((state: RootState) => state.channels);
+  const { channel_id } = useParams();
 
   // if (loading) return <p>Loading...</p>;
 
@@ -67,9 +68,8 @@ const SideBar: React.FC<SideBarProps> = ({ isSidebarVisible }) => {
             }`}
           />
           <p className="flex-1 font-semibold text-white">Channels</p>
-          <div className="bg-gray-400 rounded-sm">
-            <HiMiniPlusSmall className="text-white text-lg" />
-          </div>
+
+          {userData.is_admin && <AddTeam />}
         </div>
 
         {/* List of drop down */}
@@ -81,8 +81,12 @@ const SideBar: React.FC<SideBarProps> = ({ isSidebarVisible }) => {
                 key={index}
                 className="group flex items-center gap-2 p-2 cursor-pointer transition hover:bg-gray-500 rounded duration-500"
               >
-                <div className="bg-red-300 w-3 h-3 rounded"></div>
-                <p className="text-gray-400 group-hover:text-white">
+                <div
+                  className={`${
+                    channel_id == channel.id ? "bg-red-300" : "bg-blue-300"
+                  } w-3 h-3 rounded-full`}
+                ></div>
+                <p className="text-gray-400 group-hover:text-white mb-1">
                   {channel.name}
                 </p>
               </NavLink>

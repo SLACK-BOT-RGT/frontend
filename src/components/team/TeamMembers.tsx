@@ -8,7 +8,7 @@ import {
 import { TabsContent } from "../../components/ui/tabs";
 import { Badge } from "../../components/ui/badge";
 import AddMemberModal from "./AddMemberModal";
-import { ITeamMember } from "../../types/interfaces";
+import { ITeamMember, IUser } from "../../types/interfaces";
 import RemoveMemberModal from "./RemoveMemberModal";
 import EditMemberModal from "./EditMemberModal";
 
@@ -17,6 +17,17 @@ interface TeamMembersProps {
 }
 
 const TeamMembers = ({ team_members }: TeamMembersProps) => {
+  const storedUserData = localStorage.getItem("userData");
+
+  let userData: IUser | null = null;
+  if (storedUserData) {
+    try {
+      userData = JSON.parse(storedUserData);
+    } catch (error) {
+      console.error("Failed to parse userData from localStorage", error);
+    }
+  }
+
   return (
     <TabsContent value="members">
       <div className="space-y-6">
@@ -27,7 +38,7 @@ const TeamMembers = ({ team_members }: TeamMembersProps) => {
               Manage your team members and their roles
             </p>
           </div>
-          <AddMemberModal team_members={team_members} />
+          {userData?.is_admin && <AddMemberModal team_members={team_members} />}
         </div>
 
         <Card className="bg-custom-secondary border-custom-secondary">
@@ -64,22 +75,12 @@ const TeamMembers = ({ team_members }: TeamMembersProps) => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {/* <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-gray-400 hover:text-gray-100"
-                          >
-                            <Mail className="h-4 w-4" />
-                          </Button> */}
-                    {/* <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-gray-400 hover:text-red-400"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button> */}
-                    <EditMemberModal team_member={member} />
-                    <RemoveMemberModal team_member={member} />
+                    {userData?.is_admin && (
+                      <EditMemberModal team_member={member} />
+                    )}
+                    {userData?.is_admin && (
+                      <RemoveMemberModal team_member={member} />
+                    )}
                   </div>
                 </div>
               ))}

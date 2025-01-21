@@ -1,13 +1,16 @@
-import { configureStore } from '@reduxjs/toolkit'
-import channelsReducer from './channelsSlice'
-import userReducer from './userSlice'
+import { configureStore } from '@reduxjs/toolkit';
+import { persistStore } from 'redux-persist';
+import { persistedReducer } from './root';
 
 export const store = configureStore({
-    reducer: {
-        channels: channelsReducer,
-        users: userReducer,
-    },
+    reducer: persistedReducer,
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware({
+            serializableCheck: false,
+        }),
 })
+
+export const persistor = persistStore(store);
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>
