@@ -22,8 +22,37 @@ export interface IStandupConfig {
     reminder_time: string;
     reminder_days: string[];
     is_active: boolean;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
+export interface IStandup {
+    id: number;
+    user_id: string;
+    config_id: number;
+    responses: string[];
+    submitted_at: string;
+    createdAt?: string;
+    updatedAt?: string;
+    StandupConfig: {
+        id: number;
+        team_id: string;
+        questions: string[];
+        reminder_time: string;
+        reminder_days: string[];
+        is_active: boolean;
+        createdAt?: string;
+        updatedAt?: string;
+        Team: {
+            id: string;
+            name: string;
+            description: string;
+            archived: boolean;
+            createdAt?: string;
+            updatedAt?: string;
+        };
+    };
+}
 
 
 
@@ -86,9 +115,6 @@ export interface PostState {
     error: string | null | Error | object;
 }
 
-export interface UserState {
-    user: IUser | null;
-}
 
 // interface UserOrganization {
 //     id: number;

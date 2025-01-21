@@ -215,3 +215,109 @@ export const updateStandUpConfig = async ({
     }
 
 }
+
+
+export const fetchStandUpResponses = async () => {
+
+    // const token = localStorage.getItem("accesstoken");
+    try {
+        const response = await axios.get(`${API_URL}/standup-responses/drafted`, {
+            // headers: {
+            //     Authorization: `Bearer ${token}`,
+            // },
+        });
+
+        console.log('====================================');
+        console.log("response=>", response.data.data);
+        console.log('====================================');
+        return response.data.data;
+    } catch (error: unknown) {
+
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 401) {
+                return { success: false, status: 401 };
+            }
+        }
+        throw error;
+    }
+
+}
+
+
+
+export const fetchMembersResponsesStatus = async ({ team_id }: { team_id: string }) => {
+
+    // const token = localStorage.getItem("accesstoken");
+    try {
+        const response = await axios.get(`${API_URL}/team-members/today-status/${team_id}`, {
+            // headers: {
+            //     Authorization: `Bearer ${token}`,
+            // },
+        });
+
+        console.log('====================================');
+        console.log("response=>", response.data.data);
+        console.log('====================================');
+        return response.data.data;
+    } catch (error: unknown) {
+
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 401) {
+                return { success: false, status: 401 };
+            }
+        }
+        throw error;
+    }
+
+}
+export const fetchMembersResponsesStatusToday = async ({ team_id }: { team_id: string }) => {
+
+    // const token = localStorage.getItem("accesstoken");
+    try {
+        const response = await axios.get(`${API_URL}/team-members/today-status/${team_id}`, {
+            // headers: {
+            //     Authorization: `Bearer ${token}`,
+            // },
+        });
+
+        console.log('====================================');
+        console.log("response=>", response.data.data);
+        console.log('====================================');
+        return response.data.data;
+    } catch (error: unknown) {
+
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 401) {
+                return { success: false, status: 401 };
+            }
+        }
+        throw error;
+    }
+
+}
+
+export const fetchMembersResponsesStatusWeek = async ({ team_id }: { team_id: string }) => {
+
+    // const token = localStorage.getItem("accesstoken");
+    try {
+        const response = await axios.get(`${API_URL}/team-members/week-status/${team_id}`, {
+            // headers: {
+            //     Authorization: `Bearer ${token}`,
+            // },
+        });
+
+        console.log('====================================');
+        console.log("response=>", response.data.data);
+        console.log('====================================');
+        return response.data.data;
+    } catch (error: unknown) {
+
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 401) {
+                return { success: false, status: 401 };
+            }
+        }
+        throw error;
+    }
+
+}

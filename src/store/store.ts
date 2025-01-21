@@ -5,7 +5,7 @@ import userReducer from './userSlice'
 export const store = configureStore({
     reducer: {
         channels: channelsReducer,
-        user: userReducer,
+        users: userReducer,
     },
 })
 
