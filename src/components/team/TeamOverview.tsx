@@ -19,13 +19,13 @@ import { BarChart, Bar } from "recharts";
 import { CheckCircle, Clock, Users, XCircle } from "lucide-react";
 import { ITeamMember } from "../../types/interfaces";
 
-const participationData = [
-  { date: "Mon", rate: 92 },
-  { date: "Tue", rate: 88 },
-  { date: "Wed", rate: 95 },
-  { date: "Thu", rate: 85 },
-  { date: "Fri", rate: 90 },
-];
+// const participationData = [
+//   { date: "Mon", rate: 92 },
+//   { date: "Tue", rate: 88 },
+//   { date: "Wed", rate: 95 },
+//   { date: "Thu", rate: 85 },
+//   { date: "Fri", rate: 90 },
+// ];
 
 // const responseTimeData = [
 //   { time: "9 AM", count: 5 },
@@ -41,7 +41,7 @@ const participationData = [
 //   { name: "Mike Johnson", status: "Responded", time: "9:45 AM" },
 // ];
 
-interface IStatus {
+export interface IStatus {
   name: string;
   status: string;
   time: string;
@@ -56,14 +56,15 @@ const TeamOverview = ({
   team_members,
   team_members_status_today,
   team_members_status_week,
+  channel_id,
 }: TeamOverviewProps) => {
   const complete_members = team_members_status_today.filter(
     (item) => item.status == "Responded"
   ).length;
 
-  console.log("=======team_members_status_today=============");
-  console.log(complete_members);
-  console.log("=======team_members_status_today==============");
+  const teamMembers = team_members.filter(
+    (member) => member.team_id == channel_id
+  );
 
   const calculateAverageResponseTime = (
     teamMembers: { name: string; status: string; time: string }[]
@@ -82,7 +83,7 @@ const TeamOverview = ({
       .map((member) => isoTimeToMinutes(member.time));
 
     if (responseTimes.length === 0) {
-      return "No responses to calculate average time.";
+      return "No responses";
     }
 
     // Calculate the average time in minutes
@@ -188,7 +189,7 @@ const TeamOverview = ({
             <Users className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{team_members.length}</div>
+            <div className="text-2xl font-bold">{teamMembers.length}</div>
             <div className="text-xs text-gray-500">Active members</div>
           </CardContent>
         </Card>
@@ -202,7 +203,8 @@ const TeamOverview = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(complete_members / team_members_status_today.length) * 100}%
+              {(complete_members / team_members_status_today.length) * 100 || 0}
+              %
             </div>
             <div className="text-xs text-gray-500">
               {complete_members}/{team_members_status_today.length} members

@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./Layout";
 // import News from "./news";
 // import Users from "./users";
-import PassCode from "./passcode";
+import PassCode from "../Pages/Passcode";
 import Login from "../Pages/Login";
 import ChannelDashBoard from "../Pages/ChannelDashBoard";
 import StandupDashboard from "../Pages/StandupDashboard";

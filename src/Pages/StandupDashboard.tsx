@@ -153,6 +153,75 @@ const StandupDashboard = () => {
     });
   }, [selectedTeam, selectedDate, statusFilter, searchQuery, standupResponses]);
 
+  const exportToCSV = (data: StandupResponse[], filename: string) => {
+    // Define CSV headers
+    const headers = [
+      "Date",
+      "Member",
+      "Team",
+      "Status",
+      "standup",
+      "Submitted At",
+    ];
+
+    // Convert data to CSV format
+    const csvData = data.map((entry) => [
+      entry.date,
+      entry.member,
+      entry.team,
+      entry.status,
+      entry.standup
+        .map((item) => `${item.question}: ${item.response}`)
+        .join("; "),
+      entry.submittedAt,
+    ]);
+
+    // Combine headers and data
+    const csvContent = [
+      headers.join(","),
+      ...csvData.map((row) => row.map((cell) => `"${cell || ""}"`).join(",")),
+    ].join("\n");
+
+    // Create and trigger download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", filename);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const exportToJSON = (data: StandupResponse[], filename: string) => {
+    const jsonString = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const link = document.createElement("a");
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", filename);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const handleExport = (fileFormat: "csv" | "json") => {
+    const date = format(new Date(), "yyyy-MM-dd");
+    const filename = `standup-data-${date}.${fileFormat}`;
+
+    if (fileFormat === "csv") {
+      exportToCSV(filteredData, filename);
+    } else {
+      exportToJSON(filteredData, filename);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Section */}
@@ -164,7 +233,12 @@ const StandupDashboard = () => {
           <p className="text-gray-400">View and manage team standups</p>
         </div>
         <div className="flex space-x-2">
-          <Button className="bg-indigo-600 hover:bg-indigo-700">
+          <Button
+            className="bg-indigo-600 hover:bg-indigo-700"
+            onClick={() => {
+              handleExport("csv");
+            }}
+          >
             <Download className="h-4 w-4 mr-2" />
             Export Data
           </Button>

@@ -1,23 +1,18 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { handlePassCode } from "../api/api";
+import { handlePassCode } from "../api/team_members";
 
 const PassCode: React.FC = () => {
-  const [values, setValues] = useState({ passcode: "" });
+  const [passcode, setPassCode] = useState("");
 
   const location = useLocation();
   const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const accessToken = params.get("accesstoken");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setValues((prev) => ({ ...prev, [name]: value }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await handlePassCode({ ...values, accessToken });
+    await handlePassCode({ passcode, accessToken });
     navigate("/");
   };
 
@@ -34,8 +29,8 @@ const PassCode: React.FC = () => {
               type="number"
               id="passcode"
               name="passcode"
-              value={values.passcode}
-              onChange={handleChange}
+              value={passcode}
+              onChange={(e) => setPassCode(e.target.value)}
               className="w-full px-4 py-2 border border-transparent rounded transition duration-500 outline-none focus:ring-2 focus:ring-blue-300 bg-custom-secondary text-white"
             />
           </div>

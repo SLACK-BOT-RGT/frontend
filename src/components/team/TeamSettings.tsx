@@ -13,14 +13,17 @@ import { Switch } from "../ui/switch";
 import { Textarea } from "../ui/textarea";
 import { Clock, Save, Plus, Trash2 } from "lucide-react";
 import { TabsContent } from "../ui/tabs";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchStandUpConfig,
+  RemoveChannel,
   updateStandUpConfig,
 } from "../../api/team_members";
-import Loading from "../Loading";
+// import Loading from "../Loading";
 import { IStandupConfig } from "../../types/interfaces";
 import { DAYS_OF_THE_WEEK } from "../../config/constants";
+import { useAppSelector } from "../../hooks/hooks";
+import { useNavigate } from "react-router-dom";
 
 // Sample data - replace with actual API call
 const initialConfig = {
@@ -38,16 +41,25 @@ const TeamSettings = ({ channel_id }: TeamSettingsProps) => {
   const queryClient = useQueryClient();
   const [config, setConfig] = useState<IStandupConfig | null>(initialConfig);
   const [questions, setQuestions] = useState<string[]>([]);
+  const [deleteTeamName, setDeleteTeamName] = useState<string>("");
 
-  const handleFetchStandUpConfig = async () => {
-    // Assuming fetchStandUpConfig returns a Promise<IStandupConfig>
-    return await fetchStandUpConfig({ team_id: channel_id });
-  };
+  const navigate = useNavigate();
+  const { channels } = useAppSelector((state) => state.channels);
+  const channel = channels?.find((channel) => channel.id === channel_id);
 
-  const { data: standupConfig, isLoading } = useQuery<IStandupConfig>({
-    queryFn: handleFetchStandUpConfig,
-    queryKey: ["standup-config"],
-  });
+  // const handleFetchStandUpConfig = async () => {
+  //   // Assuming fetchStandUpConfig returns a Promise<IStandupConfig>
+  //   console.log("====================================");
+  //   console.log("channel_id");
+  //   console.log("====================================");
+
+  //   return (await fetchStandUpConfig({ team_id: channel_id })) || initialConfig;
+  // };
+
+  // const { data: standupConfig, isLoading } = useQuery<IStandupConfig>({
+  //   queryFn: handleFetchStandUpConfig,
+  //   queryKey: ["standup-config"],
+  // });
 
   const { mutateAsync: UpdateStandUpConfigMutation } = useMutation({
     mutationFn: updateStandUpConfig,
@@ -55,12 +67,16 @@ const TeamSettings = ({ channel_id }: TeamSettingsProps) => {
       queryClient.invalidateQueries({ queryKey: ["team-members"] });
     },
   });
-  useEffect(() => {
-    if (!standupConfig) return;
 
-    setConfig(standupConfig);
-    setQuestions(standupConfig.questions);
-  }, [standupConfig]);
+  useEffect(() => {
+    async function fetchData() {
+      const standupConfig =
+        (await fetchStandUpConfig({ team_id: channel_id })) || initialConfig;
+      setConfig(standupConfig);
+      setQuestions(standupConfig.questions);
+    }
+    fetchData();
+  }, [channel_id]);
 
   const handleAddQuestion = () => {
     setQuestions([...questions, ""]);
@@ -99,7 +115,25 @@ const TeamSettings = ({ channel_id }: TeamSettingsProps) => {
       data,
     });
   };
-  if (isLoading) return <Loading />;
+  // if (isLoading) return <Loading />;
+
+  // Mutations
+  const { mutateAsync: AddTeamMutation } = useMutation({
+    mutationFn: RemoveChannel,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["channels"] });
+    },
+  });
+
+  async function handleAddTeam() {
+    if (!channel) return;
+    if (channel.name !== deleteTeamName) {
+      alert("Name missmatch");
+      return;
+    }
+    await AddTeamMutation({ channel_id });
+    navigate("/");
+  }
 
   return (
     <TabsContent value="settings">
@@ -116,7 +150,7 @@ const TeamSettings = ({ channel_id }: TeamSettingsProps) => {
         <Card className="bg-custom-secondary border-custom-secondary">
           <CardHeader>
             <CardTitle className="text-gray-300">General Settings</CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-400">
               Configure basic standup parameters
             </CardDescription>
           </CardHeader>
@@ -187,7 +221,7 @@ const TeamSettings = ({ channel_id }: TeamSettingsProps) => {
                 <CardTitle className="text-gray-300">
                   Standup Questions
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-gray-400">
                   Customize your daily standup questions
                 </CardDescription>
               </div>
@@ -235,6 +269,39 @@ const TeamSettings = ({ channel_id }: TeamSettingsProps) => {
             Save Changes
           </Button>
         </div>
+
+        <Card className="bg-custom-secondary border-custom-secondary">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle className="text-red-300">Delete Channel</CardTitle>
+                <CardDescription className="text-gray-400">
+                  You can delete channel{" "}
+                  <strong className="text-gray-300">({channel?.name})</strong>{" "}
+                  here; To proceed type the name in the filed and submit.
+                </CardDescription>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4 text-gray-300">
+                    <Input
+                      id="username"
+                      value={deleteTeamName}
+                      className="col-span-3 border-red-300"
+                      onChange={(e) => setDeleteTeamName(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleAddTeam}
+                  className="bg-red-500 hover:bg-red-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Remove Team
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
       </div>
     </TabsContent>
   );
