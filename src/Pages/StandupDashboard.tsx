@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -29,50 +29,68 @@ import {
   Search,
 } from "lucide-react";
 import { format } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { fetchStandUpResponses } from "../api/team_members";
+import { useAppDispatch, useAppSelector } from "../hooks/hooks";
+import { setStandupResponses } from "../store/channelsSlice";
 
-const standupData = [
-  {
-    id: 1,
-    member: "John Doe",
-    team: "Frontend",
-    date: "2025-01-19",
-    status: "Completed",
-    yesterday: "Completed user authentication flow",
-    today: "Starting work on dashboard layout",
-    blockers: "None",
-    submittedAt: "09:15 AM",
-  },
-  {
-    id: 2,
-    member: "Jane Smith",
-    team: "Backend",
-    date: "2025-01-19",
-    status: "Missing",
-    submittedAt: "-",
-  },
-  {
-    id: 3,
-    member: "John Doe",
-    team: "Frontend",
-    date: "2024-01-19",
-    status: "Completed",
-    yesterday: "Completed user authentication flow",
-    today: "Starting work on dashboard layout",
-    blockers: "None",
-    submittedAt: "09:15 AM",
-  },
-  {
-    id: 4,
-    member: "John Doe",
-    team: "Frontend",
-    date: "2025-01-19",
-    status: "Completed",
-    yesterday: "Completed user authentication flow",
-    today: "Starting work on dashboard layout",
-    blockers: "None",
-    submittedAt: "09:15 AM",
-  },
-];
+// const standupData = [
+//   {
+//     id: 1,
+//     member: "John Doe",
+//     team: "Frontend",
+//     date: "2025-01-19",
+//     status: "Completed",
+//     yesterday: "Completed user authentication flow",
+//     today: "Starting work on dashboard layout",
+//     blockers: "None",
+//     submittedAt: "09:15 AM",
+//   },
+//   {
+//     id: 2,
+//     member: "Jane Smith",
+//     team: "Backend",
+//     date: "2025-01-19",
+//     status: "Missing",
+//     submittedAt: "-",
+//   },
+//   {
+//     id: 3,
+//     member: "John Doe",
+//     team: "Frontend",
+//     date: "2024-01-19",
+//     status: "Completed",
+//     yesterday: "Completed user authentication flow",
+//     today: "Starting work on dashboard layout",
+//     blockers: "None",
+//     submittedAt: "09:15 AM",
+//   },
+//   {
+//     id: 4,
+//     member: "John Doe",
+//     team: "Frontend",
+//     date: "2025-01-19",
+//     status: "Completed",
+//     yesterday: "Completed user authentication flow",
+//     today: "Starting work on dashboard layout",
+//     blockers: "None",
+//     submittedAt: "09:15 AM",
+//   },
+// ];
+
+interface StandupResponse {
+  member: string;
+  team: string;
+  team_id: string;
+  date: string;
+  status: string;
+  standup: {
+    question: string;
+    response: string;
+  }[];
+  submittedAt: string;
+}
+
 const StandupDashboard = () => {
   const [selectedTeam, setSelectedTeam] = useState("all");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
@@ -80,6 +98,23 @@ const StandupDashboard = () => {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+
+  const dispatch = useAppDispatch();
+  const { standupResponses, channels } = useAppSelector(
+    (state) => state.channels
+  );
+
+  const { data: standupResponsesData } = useQuery<StandupResponse[]>({
+    queryFn: fetchStandUpResponses,
+    queryKey: ["standups"],
+  });
+
+  useEffect(() => {
+    if (!standupResponsesData) return;
+    dispatch(setStandupResponses(standupResponsesData));
+  }, [standupResponsesData, dispatch]);
+
+  // const [standupResponses,setStandupResponses] = useState([]);
 
   // Sample data - replace with actual API data
 
@@ -93,21 +128,16 @@ const StandupDashboard = () => {
 
   // Filter data using useMemo for performance
   const filteredData = useMemo(() => {
-    return standupData.filter((entry) => {
+    return standupResponses.filter((entry) => {
       // Team filter
       const teamMatch =
         selectedTeam === "all" ||
         entry.team.toLowerCase() === selectedTeam.toLowerCase();
 
-      console.log("====================================");
-      console.log(teamMatch);
-      console.log("====================================");
-
-      // Date filter
+      const entryDate = new Date(entry.submittedAt);
       const dateMatch = selectedDate
-        ? entry.date === format(selectedDate, "yyyy-MM-dd")
+        ? format(entryDate, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd")
         : true;
-
       // Status filter
       const statusMatch =
         statusFilter === "all" ||
@@ -121,7 +151,7 @@ const StandupDashboard = () => {
 
       return teamMatch && dateMatch && statusMatch && searchMatch;
     });
-  }, [selectedTeam, selectedDate, statusFilter, searchQuery]);
+  }, [selectedTeam, selectedDate, statusFilter, searchQuery, standupResponses]);
 
   return (
     <div className="space-y-6">
@@ -166,8 +196,12 @@ const StandupDashboard = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Teams</SelectItem>
-                  <SelectItem value="frontend">Frontend</SelectItem>
-                  <SelectItem value="backend">Backend</SelectItem>
+                  {channels?.map((item) => (
+                    <SelectItem key={item.id} value={item.name}>
+                      {item.name}
+                    </SelectItem>
+                  ))}
+                  {/* <SelectItem value="backend">Backend</SelectItem> */}
                 </SelectContent>
               </Select>
             </div>
@@ -234,10 +268,10 @@ const StandupDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredData.length > 0 ? (
-              filteredData.map((entry) => (
+            {filteredData?.length > 0 ? (
+              filteredData?.map((entry, index) => (
                 <div
-                  key={entry.id}
+                  key={index}
                   className="p-4 rounded-lg border border-gray-700 hover:bg-gray-700/50 transition-colors"
                 >
                   <div className="flex justify-between items-start mb-4">
@@ -268,18 +302,23 @@ const StandupDashboard = () => {
 
                   {entry.status === "Completed" && (
                     <div className="space-y-3 text-sm">
-                      <div>
+                      {entry.standup.map((item, index) => (
+                        <div key={index}>
+                          <p className="text-gray-400 mb-1">{item.question}</p>
+                          <p className="text-gray-200">{item.response}</p>
+                        </div>
+                      ))}
+                      {/* <div>
+                        <p clas<div>
                         <p className="text-gray-400 mb-1">Yesterday</p>
                         <p className="text-gray-200">{entry.yesterday}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-400 mb-1">Today</p>
+                      </div>sName="text-gray-400 mb-1">Today</p>
                         <p className="text-gray-200">{entry.today}</p>
                       </div>
                       <div>
                         <p className="text-gray-400 mb-1">Blockers</p>
                         <p className="text-gray-200">{entry.blockers}</p>
-                      </div>
+                      </div> */}
                       <div className="text-right">
                         <span className="text-xs text-gray-400">
                           Submitted at {entry.submittedAt}
