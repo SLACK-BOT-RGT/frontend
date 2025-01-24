@@ -27,12 +27,14 @@ import {
   Calendar as CalendarIcon,
   Filter,
   Search,
+  Loader2,
 } from "lucide-react";
-import { format } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { fetchStandUpResponses } from "../api/team_members";
 import { useAppDispatch, useAppSelector } from "../hooks/hooks";
 import { setStandupResponses } from "../store/channelsSlice";
+import { useToast } from "../hooks/use-toast";
+import { format } from "date-fns";
 
 // const standupData = [
 //   {
@@ -99,6 +101,7 @@ const StandupDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  const { toast } = useToast();
   const dispatch = useAppDispatch();
   const { standupResponses, channels } = useAppSelector(
     (state) => state.channels
@@ -153,20 +156,16 @@ const StandupDashboard = () => {
     });
   }, [selectedTeam, selectedDate, statusFilter, searchQuery, standupResponses]);
 
+  console.log("=========filteredData============");
+  console.log("filteredData=>", filteredData);
+  console.log("=========filteredData=============");
+
   const exportToCSV = (data: StandupResponse[], filename: string) => {
     // Define CSV headers
-    const headers = [
-      "Date",
-      "Member",
-      "Team",
-      "Status",
-      "standup",
-      "Submitted At",
-    ];
+    const headers = ["Member", "Team", "Status", "Standup", "Submitted At"];
 
     // Convert data to CSV format
     const csvData = data.map((entry) => [
-      entry.date,
       entry.member,
       entry.team,
       entry.status,
@@ -236,6 +235,15 @@ const StandupDashboard = () => {
           <Button
             className="bg-indigo-600 hover:bg-indigo-700"
             onClick={() => {
+              toast({
+                title: "Export data",
+                description: (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="animate-spin h-4 w-4 text-gray-600" />
+                    <span>Loading, please wait...</span>
+                  </div>
+                ),
+              });
               handleExport("csv");
             }}
           >
@@ -310,8 +318,9 @@ const StandupDashboard = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="missing">Missing</SelectItem>
+                  <SelectItem value="responded">Responded</SelectItem>
+                  <SelectItem value="not responded">Not Responded</SelectItem>
+                  <SelectItem value="missed">Missed</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -360,14 +369,16 @@ const StandupDashboard = () => {
                         <h3 className="text-gray-100 font-medium">
                           {entry.member}
                         </h3>
-                        <p className="text-sm text-gray-400">{entry.team}</p>
+                        <p className="text-sm text-gray-400">#{entry.team}</p>
                       </div>
                     </div>
                     <Badge
                       className={
-                        entry.status === "Completed"
+                        entry.status === "responded"
                           ? "bg-green-500/20 text-green-400"
-                          : "bg-red-500/20 text-red-400"
+                          : entry.status === "missed"
+                          ? "bg-red-500/20 text-red-400"
+                          : "bg-yellow-500/20 text-yellow-400"
                       }
                     >
                       {entry.status}
@@ -376,23 +387,19 @@ const StandupDashboard = () => {
 
                   {entry.status === "Completed" && (
                     <div className="space-y-3 text-sm">
-                      {entry.standup.map((item, index) => (
-                        <div key={index}>
-                          <p className="text-gray-400 mb-1">{item.question}</p>
-                          <p className="text-gray-200">{item.response}</p>
-                        </div>
-                      ))}
-                      {/* <div>
-                        <p clas<div>
-                        <p className="text-gray-400 mb-1">Yesterday</p>
-                        <p className="text-gray-200">{entry.yesterday}</p>
-                      </div>sName="text-gray-400 mb-1">Today</p>
-                        <p className="text-gray-200">{entry.today}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-400 mb-1">Blockers</p>
-                        <p className="text-gray-200">{entry.blockers}</p>
-                      </div> */}
+                      {entry.standup.map((item, index) => {
+                        console.log("====================================");
+                        console.log("hey", item);
+                        console.log("====================================");
+                        return (
+                          <div key={index}>
+                            <p className="text-gray-400 mb-1">
+                              {item.question}
+                            </p>
+                            <p className="text-gray-200">{item.response}</p>
+                          </div>
+                        );
+                      })}
                       <div className="text-right">
                         <span className="text-xs text-gray-400">
                           Submitted at {entry.submittedAt}

@@ -19,9 +19,9 @@ import {
 import { updateTeamMember } from "../../api/team_members";
 import { ITeamMember } from "../../types/interfaces";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Edit } from "lucide-react";
+import { Edit, Loader2 } from "lucide-react";
 import { useState } from "react";
-
+import { useToast } from "../../hooks/use-toast";
 interface EditMemberModalProps {
   team_member: ITeamMember;
 }
@@ -31,6 +31,7 @@ const EditMemberModal = ({ team_member }: EditMemberModalProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { mutateAsync: EditMemberMutation } = useMutation({
     mutationFn: updateTeamMember,
@@ -41,6 +42,15 @@ const EditMemberModal = ({ team_member }: EditMemberModalProps) => {
 
   async function handleUpdate() {
     setIsOpen(false);
+    toast({
+      title: "Updating a team member",
+      description: (
+        <div className="flex items-center gap-2">
+          <Loader2 className="animate-spin h-4 w-4 text-gray-600" />
+          <span>Loading, please wait...</span>
+        </div>
+      ),
+    });
     await EditMemberMutation({ id: team_member.id, role: selectedRole });
   }
 

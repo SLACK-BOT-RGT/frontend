@@ -11,7 +11,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
 import { Textarea } from "../ui/textarea";
-import { Clock, Save, Plus, Trash2 } from "lucide-react";
+import { Clock, Save, Plus, Trash2, Loader2 } from "lucide-react";
 import { TabsContent } from "../ui/tabs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -24,12 +24,14 @@ import { IStandupConfig } from "../../types/interfaces";
 import { DAYS_OF_THE_WEEK } from "../../config/constants";
 import { useAppSelector } from "../../hooks/hooks";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../hooks/use-toast";
 
 // Sample data - replace with actual API call
 const initialConfig = {
   team_id: "",
   questions: [],
   reminder_time: "",
+  due_time: "",
   reminder_days: [],
   is_active: false,
 };
@@ -38,11 +40,12 @@ interface TeamSettingsProps {
   channel_id: string;
 }
 const TeamSettings = ({ channel_id }: TeamSettingsProps) => {
-  const queryClient = useQueryClient();
   const [config, setConfig] = useState<IStandupConfig | null>(initialConfig);
   const [questions, setQuestions] = useState<string[]>([]);
   const [deleteTeamName, setDeleteTeamName] = useState<string>("");
 
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const { channels } = useAppSelector((state) => state.channels);
   const channel = channels?.find((channel) => channel.id === channel_id);
@@ -107,13 +110,29 @@ const TeamSettings = ({ channel_id }: TeamSettingsProps) => {
       questions: questions,
       reminder_days: config?.reminder_days,
       reminder_time: config?.reminder_time,
+      due_time: config?.due_time,
       is_active: config?.is_active,
     } as IStandupConfig;
+
+    toast({
+      title: "Updating Configuration",
+      description: (
+        <div className="flex items-center gap-2">
+          <Loader2 className="animate-spin h-4 w-4 text-gray-600" />
+          <span>Loading, please wait...</span>
+        </div>
+      ),
+    });
 
     await UpdateStandUpConfigMutation({
       config_id: config?.id as number,
       data,
     });
+
+    const standupConfig =
+      (await fetchStandUpConfig({ team_id: channel_id })) || initialConfig;
+    setConfig(standupConfig);
+    setQuestions(standupConfig.questions);
   };
   // if (isLoading) return <Loading />;
 
@@ -174,7 +193,7 @@ const TeamSettings = ({ channel_id }: TeamSettingsProps) => {
 
             <div className="space-y-2">
               <Label className="text-gray-300">Reminder Time</Label>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 w-[50%]">
                 <Clock className="h-4 w-4 text-gray-400" />
                 <Input
                   type="time"
@@ -182,6 +201,21 @@ const TeamSettings = ({ channel_id }: TeamSettingsProps) => {
                   onChange={(e) => {
                     if (!config) return;
                     setConfig({ ...config, reminder_time: e.target.value });
+                  }}
+                  className="bg-gray-700 border-gray-600 text-gray-200"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-gray-300">Due Time</Label>
+              <div className="flex items-center space-x-2 w-[50%]">
+                <Clock className="h-4 w-4 text-gray-400" />
+                <Input
+                  type="time"
+                  value={config?.due_time}
+                  onChange={(e) => {
+                    if (!config) return;
+                    setConfig({ ...config, due_time: e.target.value });
                   }}
                   className="bg-gray-700 border-gray-600 text-gray-200"
                 />

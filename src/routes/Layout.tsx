@@ -11,6 +11,7 @@ import SideBar from "../components/SideBar";
 import MainBody from "../components/MainBody";
 import { fetchAllChannels } from "../api/team_members";
 import { setChannels } from "../store/channelsSlice";
+import { Toaster } from "../components/ui/toaster"
 
 const Layout = () => {
   const { data: channels, isLoading } = useQuery({
@@ -53,6 +54,7 @@ const Layout = () => {
         isSidebarVisible={isSidebarVisible}
         toggleSidebar={toggleSidebar}
       />
+      <Toaster />
     </div>
   );
 };

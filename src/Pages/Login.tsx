@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { sendMagicLink } from "../api/api";
-import { toast, ToastContainer } from "react-toastify";
+import { useToast } from "../hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 const Login: React.FC = () => {
   const [values, setValues] = useState({ email: "" });
-
+  const { toast } = useToast();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -12,18 +13,30 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast("Loading...", {
-      isLoading: true,
-    });
+
+    console.log("====================================");
+    console.log("Start");
+    console.log("====================================");
+
+    // toast({
+    //   title: "Loging...",
+    //   description: (
+    //     <div className="flex items-center gap-2">
+    //       <Loader2 className="animate-spin h-4 w-4 text-gray-600" />
+    //       <span>Loading, please wait...</span>
+    //     </div>
+    //   ),
+    // });
     await sendMagicLink({ ...values });
-    toast.dismiss();
-    toast.success("Link has been sent to email!");
+    alert("Link has been sent to email!... Check your mail");
+    // toast({
+    //   title: "Link has been sent to email!",
+    // });
     setValues({ email: "" });
   };
 
   return (
     <div className="flex w-screen h-screen bg-custom-secondary justify-center items-center">
-      <ToastContainer />
       <form onSubmit={handleSubmit}>
         <p className="text-gray-300 text-xl">Please enter your email</p>
         <div className="w-full bg-custom-primary flex flex-wrap justify-between p-5 mt-5">

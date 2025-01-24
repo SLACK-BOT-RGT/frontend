@@ -1,6 +1,6 @@
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { UserPlus, Search } from "lucide-react";
+import { UserPlus, Search, Loader2 } from "lucide-react";
 import {
   Sheet,
   SheetClose,
@@ -36,7 +36,7 @@ const AddMemberModal = ({ team_members }: AddMemberModalProps) => {
 
   // Mutations
   const { mutateAsync: AddMemberMutation } = useMutation({
-    mutationFn: handleAddMembers,
+    mutationFn: postTeamMembers,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team-members"] });
     },
@@ -77,15 +77,16 @@ const AddMemberModal = ({ team_members }: AddMemberModalProps) => {
     // user.department.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  console.log("====================================");
-  console.log("filteredUsers=>", filteredUsers);
-  console.log("====================================");
-
   async function handleAddMembers() {
     toast({
-      description: "Adding member...",
+      title: "Adding a team member",
+      description: (
+        <div className="flex items-center gap-2">
+          <Loader2 className="animate-spin h-4 w-4 text-gray-600" />
+          <span>Loading, please wait...</span>
+        </div>
+      ),
     });
-    console.log("Selected users:", selectedUsers);
 
     const data = selectedUsers.map((item) => {
       return {
@@ -95,13 +96,7 @@ const AddMemberModal = ({ team_members }: AddMemberModalProps) => {
       };
     });
 
-    const response = await postTeamMembers(data);
-
-    console.log("Selected data=>", response.data);
-
-    toast({
-      description: "Member added successfully!",
-    });
+    await AddMemberMutation(data);
   }
 
   return (
@@ -185,13 +180,7 @@ const AddMemberModal = ({ team_members }: AddMemberModalProps) => {
             <Button
               type="submit"
               className="bg-indigo-600"
-              onClick={async () => {
-                try {
-                  await AddMemberMutation();
-                } catch (error) {
-                  console.log(error);
-                }
-              }}
+              onClick={handleAddMembers}
             >
               Save changes
             </Button>

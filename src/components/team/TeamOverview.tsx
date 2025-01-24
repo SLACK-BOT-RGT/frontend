@@ -18,6 +18,7 @@ import {
 import { BarChart, Bar } from "recharts";
 import { CheckCircle, Clock, Users, XCircle } from "lucide-react";
 import { ITeamMember } from "../../types/interfaces";
+import { calculateAverageResponseTime } from "../../utils";
 
 // const participationData = [
 //   { date: "Mon", rate: 92 },
@@ -59,50 +60,12 @@ const TeamOverview = ({
   channel_id,
 }: TeamOverviewProps) => {
   const complete_members = team_members_status_today.filter(
-    (item) => item.status == "Responded"
+    (item) => item.status == "responded"
   ).length;
 
   const teamMembers = team_members.filter(
     (member) => member.team_id == channel_id
   );
-
-  const calculateAverageResponseTime = (
-    teamMembers: { name: string; status: string; time: string }[]
-  ) => {
-    // Helper function to convert ISO date string to minutes since midnight
-    const isoTimeToMinutes = (isoString: string): number => {
-      const date = new Date(isoString);
-      const hours = date.getHours();
-      const minutes = date.getMinutes();
-      return hours * 60 + minutes;
-    };
-
-    // Filter team members who responded and map their response times to minutes
-    const responseTimes = teamMembers
-      .filter((member) => member.status === "Responded")
-      .map((member) => isoTimeToMinutes(member.time));
-
-    if (responseTimes.length === 0) {
-      return "No responses";
-    }
-
-    // Calculate the average time in minutes
-    const averageTimeInMinutes =
-      responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length;
-
-    // Convert average time in minutes back to HH:MM AM/PM format
-    const minutes = Math.floor(averageTimeInMinutes % 60);
-    let hours = Math.floor(averageTimeInMinutes / 60);
-    const period = hours >= 12 ? "PM" : "AM";
-
-    if (hours > 12) {
-      hours -= 12;
-    } else if (hours === 0) {
-      hours = 12;
-    }
-
-    return `${hours}:${minutes.toString().padStart(2, "0")} ${period}`;
-  };
 
   const generateResponseTimeData = (
     teamMembers: { name: string; status: string; time: string }[]
@@ -121,7 +84,7 @@ const TeamOverview = ({
 
     // Process each member's response time
     teamMembers.forEach((member) => {
-      if (member.status === "Responded") {
+      if (member.status === "responded") {
         const hour = extractHour(member.time); // Properly format the time
         hourlyCounts[hour] = (hourlyCounts[hour] || 0) + 1;
       }
@@ -318,9 +281,11 @@ const TeamOverview = ({
                 </div>
                 <div
                   className={`px-3 py-1 rounded-full text-sm ${
-                    member.status === "Responded"
+                    member.status === "responded"
                       ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
+                      : member.status === "missed"
+                      ? "bg-red-100 text-red-800"
+                      : "bg-yellow-100 text-yellow-800"
                   }`}
                 >
                   {member.status}

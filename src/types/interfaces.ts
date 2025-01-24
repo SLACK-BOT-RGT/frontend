@@ -21,6 +21,7 @@ export interface IStandupConfig {
     team_id: string;
     questions: string[];
     reminder_time: string;
+    due_time: string;
     reminder_days: string[];
     is_active: boolean;
     createdAt?: string;
@@ -57,6 +58,18 @@ export interface IStandup {
 
 
 
+export interface StandupResponse {
+    member: string;
+    team: string;
+    team_id: string;
+    date: string;
+    status: string;
+    standup: {
+        question: string;
+        response: string;
+    }[],
+    submittedAt: string;
+}
 
 
 

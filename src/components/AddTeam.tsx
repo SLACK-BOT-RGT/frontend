@@ -14,6 +14,8 @@ import { Label } from "./ui/label";
 import { HiMiniPlusSmall } from "react-icons/hi2";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AddChannel } from "../api/team_members";
+import { useToast } from "../hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 const AddTeam = () => {
   const [name, setName] = useState("");
@@ -21,6 +23,7 @@ const AddTeam = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Mutations
   const { mutateAsync: AddTeamMutation } = useMutation({
@@ -32,12 +35,19 @@ const AddTeam = () => {
 
   async function handleAddTeam() {
     setIsOpen(false);
+    toast({
+      title: "Adding a team",
+      description: (
+        <div className="flex items-center gap-2">
+          <Loader2 className="animate-spin h-4 w-4 text-gray-600" />
+          <span>Loading, please wait...</span>
+        </div>
+      ),
+    });
     await AddTeamMutation({
       name: name,
       description: description,
     });
-
-    console.log("Selected data=>", name, description);
   }
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
