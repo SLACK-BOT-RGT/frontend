@@ -13,9 +13,9 @@ import { Input } from "../../components/ui/input";
 import { deleteTeamMember } from "../../api/team_members";
 import { ITeamMember } from "../../types/interfaces";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 import { useState } from "react";
-
+import { useToast } from "../../hooks/use-toast";
 interface RemoveMemberModalProps {
   team_member: ITeamMember;
 }
@@ -23,7 +23,9 @@ interface RemoveMemberModalProps {
 const RemoveMemberModal = ({ team_member }: RemoveMemberModalProps) => {
   const [text, setText] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Mutations
   const { mutateAsync: RemoveMemberMutation } = useMutation({
@@ -36,6 +38,15 @@ const RemoveMemberModal = ({ team_member }: RemoveMemberModalProps) => {
   async function handleDelete() {
     setIsOpen(false);
     if (text.trim() == team_member.User.email.trim()) {
+      toast({
+        title: "Removing a team member",
+        description: (
+          <div className="flex items-center gap-2">
+            <Loader2 className="animate-spin h-4 w-4 text-gray-600" />
+            <span>Loading, please wait...</span>
+          </div>
+        ),
+      });
       await RemoveMemberMutation({ id: team_member.id });
     }
   }

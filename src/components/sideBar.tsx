@@ -2,11 +2,14 @@ import { IoIosArrowDown } from "react-icons/io";
 import { IoSettingsSharp } from "react-icons/io5";
 import { TbLogout } from "react-icons/tb";
 import { useState } from "react";
-import { useAppSelector } from "../hooks/hooks";
+import { useAppDispatch, useAppSelector } from "../hooks/hooks";
 import { RootState } from "../store/store";
-import { NavLink, useParams } from "react-router-dom";
+import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { IUser } from "../types/interfaces";
 import AddTeam from "./AddTeam";
+import { ScrollArea } from "./ui/scroll-area";
+import { clearChannels } from "../store/channelsSlice";
+import { clearUser, clearUsers } from "../store/userSlice";
 
 interface SideBarProps {
   id?: number;
@@ -18,6 +21,9 @@ const SideBar: React.FC<SideBarProps> = ({ isSidebarVisible }) => {
   // const { channels }: { channels: Channel[] } = useOutletContext();
   const { channels } = useAppSelector((state: RootState) => state.channels);
   const { channel_id } = useParams();
+
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   // if (loading) return <p>Loading...</p>;
 
@@ -74,29 +80,41 @@ const SideBar: React.FC<SideBarProps> = ({ isSidebarVisible }) => {
 
         {/* List of drop down */}
         {isOpen && (
-          <div className="mt-2">
-            {channels?.map((channel, index) => (
-              <NavLink
-                to={`channel/${channel.id}`}
-                key={index}
-                className="group flex items-center gap-2 p-2 cursor-pointer transition hover:bg-gray-500 rounded duration-500"
-              >
-                <div
-                  className={`${
-                    channel_id == channel.id ? "bg-red-300" : "bg-blue-300"
-                  } w-3 h-3 rounded-full`}
-                ></div>
-                <p className="text-gray-400 group-hover:text-white mb-1">
-                  {channel.name}
-                </p>
-              </NavLink>
-            ))}
-          </div>
+          <ScrollArea className="h-[50%] w-[100%] p-4">
+            <div className="mt-2">
+              {channels?.map((channel, index) => (
+                <NavLink
+                  to={`channel/${channel.id}`}
+                  key={index}
+                  className="group flex items-center gap-2 p-2 cursor-pointer transition hover:bg-gray-500 rounded duration-500"
+                >
+                  <div
+                    className={`${
+                      channel_id == channel.id ? "bg-red-300" : "bg-blue-300"
+                    } w-3 h-3 rounded-full`}
+                  ></div>
+                  <p className="text-gray-400 group-hover:text-white mb-1">
+                    #{channel.name}
+                  </p>
+                </NavLink>
+              ))}
+            </div>
+          </ScrollArea>
         )}
       </div>
       <div className="flex justify-between">
         <IoSettingsSharp className="text-2xl text-right cursor-pointer text-white transform transition-transform duration-300 hover:scale-110" />
-        <TbLogout className="text-2xl text-right cursor-pointer text-white transform transition-transform duration-300 hover:scale-110" />
+        <TbLogout
+          className="text-2xl text-right cursor-pointer text-white transform transition-transform duration-300 hover:scale-110"
+          onClick={() => {
+            localStorage.setItem("userData", "");
+            localStorage.setItem("accesstoken", "");
+            dispatch(clearChannels());
+            dispatch(clearUser());
+            dispatch(clearUsers());
+            navigate("/");
+          }}
+        />
       </div>
     </div>
   );

@@ -199,15 +199,15 @@ export const updateUserOrgInfo = async ({ orgId, userId, role }: { orgId: string
 
 export const sendMagicLink = async ({ email }: { email: string }) => {
     try {
-        const token = localStorage.getItem("accesstoken");
+        // const token = localStorage.getItem("accesstoken");
         await axios.post(
-            `${API_URL}/magic-links/send-magic-link`,
+            `${API_URL}/send-magic-link`,
             { email },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
+            // {
+            //     headers: {
+            //         Authorization: `Bearer ${token}`,
+            //     },
+            // }
         );
 
 

@@ -86,9 +86,11 @@ const TeamResponses = ({ channel_id }: TeamResponsesProps) => {
                     </div>
                     <Badge
                       className={
-                        entry.status === "Completed"
+                        entry.status === "responded"
                           ? "bg-green-500/20 text-green-400"
-                          : "bg-red-500/20 text-red-400"
+                          : entry.status == "missed"
+                          ? "bg-red-500/20 text-red-400"
+                          : "bg-yellow-500/20 text-yellow-400"
                       }
                     >
                       {entry.status}

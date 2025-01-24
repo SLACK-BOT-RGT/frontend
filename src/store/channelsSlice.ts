@@ -1,20 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 // import { fetchChannels } from './thunks';
-import { Channel, ITeamMember } from '../types/interfaces';
+import { Channel, ITeamMember, StandupResponse } from '../types/interfaces';
 
-interface StandupResponse {
-    member: string;
-    team: string;
-    team_id: string;
-    date: string;
-    status: string;
-    standup: {
-        question: string;
-        response: string;
-    }[],
-    submittedAt: string;
-}
+
 
 interface ChannelState {
     channels: Channel[];
@@ -44,7 +33,7 @@ export const organizationSlice = createSlice({
         setStandupResponses: (state, action: PayloadAction<ChannelState['standupResponses']>) => {
             state.standupResponses = action.payload
         },
-        clearOrganization: (state) => {
+        clearChannels: (state) => {
             state.channels = []
         },
     },
@@ -71,6 +60,6 @@ export const organizationSlice = createSlice({
     // },
 })
 
-export const { setChannels, clearOrganization, setTeamMembers, setStandupResponses } = organizationSlice.actions
+export const { setChannels, clearChannels, setTeamMembers, setStandupResponses } = organizationSlice.actions
 
 export default organizationSlice.reducer

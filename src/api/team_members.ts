@@ -57,7 +57,7 @@ export const postTeamMembers = async (data: { role: string; user_id: string; tea
             },
         });
 
-        return { success: true, data: response.data.data };
+        return response.data.data;
     } catch (error: unknown) {
 
         if (axios.isAxiosError(error)) {
@@ -216,19 +216,39 @@ export const updateStandUpConfig = async ({
         team_id: string; questions: string[];
         reminder_days: string[];
         reminder_time: string;
+        due_time: string;
         is_active: boolean;
     }, config_id: number
 }) => {
 
     const token = localStorage.getItem("accesstoken");
     try {
-        const response = await axios.put(`${API_URL}/standup-config/${config_id}`, { ...data }, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
+        console.log('====================================');
+        console.log("config_id--->", config_id);
+        console.log('====================================');
+        if (config_id == undefined) {
+            console.log('====================================');
+            console.log("IIIIIIIINNNNNNNNNN");
+            console.log('====================================');
+            const response = await axios.post(`${API_URL}/standup-config`, { ...data }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
 
-        return response.data.data;
+            return response.data.data;
+        } else {
+            console.log('====================================');
+            console.log("OUUTTTTTTTTTTT");
+            console.log('====================================');
+            const response = await axios.put(`${API_URL}/standup-config/${config_id}`, { ...data }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            return response.data.data;
+        }
     } catch (error: unknown) {
 
         console.log('====================================');
