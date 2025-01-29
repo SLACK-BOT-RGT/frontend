@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { sendMagicLink } from "../api/api";
-import { useToast } from "../hooks/use-toast";
-import { Loader2 } from "lucide-react";
+// import { useToast } from "../hooks/use-toast";
+// import { Loader2 } from "lucide-react";
 
 const Login: React.FC = () => {
   const [values, setValues] = useState({ email: "" });
-  const { toast } = useToast();
+  // const { toast } = useToast();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setValues((prev) => ({ ...prev, [name]: value }));
