@@ -386,3 +386,61 @@ export const handlePassCode = async ({ passcode, accessToken }: { passcode: stri
     }
 
 }
+
+export const fetchTeamPolls = async ({ team_id }: { team_id: string }) => {
+
+    const token = localStorage.getItem("accesstoken");
+    try {
+        const response = await axios.get(`${API_URL}/polls/team/${team_id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        return response.data.data;
+    } catch (error: unknown) {
+
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 401) {
+                return { success: false, status: 401 };
+            }
+        }
+        throw error;
+    }
+
+}
+
+interface addTeamPollsProps {
+    team_id: string;
+    start_time: string;
+    end_time: string;
+    creator_id: string | undefined;
+    is_anonymous: boolean;
+    options: {
+        text: string;
+    }[];
+    question: string;
+}
+
+export const addTeamPolls = async (data: addTeamPollsProps) => {
+
+    const token = localStorage.getItem("accesstoken");
+    try {
+        const response = await axios.post(`${API_URL}/polls`, data, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        return response.data.data;
+    } catch (error: unknown) {
+
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 401) {
+                return { success: false, status: 401 };
+            }
+        }
+        throw error;
+    }
+
+}

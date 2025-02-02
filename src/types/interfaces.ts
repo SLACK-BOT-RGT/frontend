@@ -129,27 +129,22 @@ export interface PostState {
     error: string | null | Error | object;
 }
 
-
-// interface UserOrganization {
-//     id: number;
-//     user_id: number;
-//     organization_id: number;
-//     role: string;
-//     active: boolean;
-//     joined_at: string;
-// }
-
-
-// export interface IUser {
-//     id: number;
-//     email: string;
-//     name: string;
-//     passCode: number;
-//     accesstoken: string;
-//     refreshtoken: string;
-//     phone_number: string;
-//     role: string;
-//     createdAt: Date;
-//     updatedAt: Date;
-//     userOrg: UserOrganization[]
-// }
+export interface IPoll {
+    id: number;
+    team_id: string;
+    creator_id: string;
+    question: string;
+    options: IPollOption[];
+    is_anonymous: boolean;
+    start_time: Date;
+    end_time: Date;
+    // status: 'draft' | 'active' | 'closed';
+    total_votes: number;
+    createdAt: string;
+}
+export interface IPollOption {
+    id: string;
+    text: string;
+    votes: number;
+    voters?: { id: string, name: string }[];
+}

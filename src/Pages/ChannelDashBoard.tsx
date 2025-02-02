@@ -27,6 +27,8 @@ import TeamMembers from "../components/team/TeamMembers";
 import TeamOverview, { IStatus } from "../components/team/TeamOverview";
 import TeamResponses from "../components/team/TeamResponses";
 import TeamSettings from "../components/team/TeamSettings";
+import TeamKudos from "../components/team/TeamKudos";
+import TeamPollAnalytics from "../components/team/TeamPollsAnalytics";
 
 declare module "jspdf" {
   interface jsPDF {
@@ -142,18 +144,6 @@ const ChannelDashBoard = () => {
     // team_members_status_today,
     // team_members_status_week,
   ]);
-  // useEffect(() => {
-  //   queryClient.invalidateQueries({ queryKey: ["team-members"] });
-  //   queryClient.invalidateQueries({ queryKey: ["eam-members-status-today"] });
-  //   queryClient.invalidateQueries({ queryKey: ["team-members-status-week"] });
-  // }, [channel_id, queryClient]);
-  // useEffect(() => {
-  //   async function fetchData() {
-  //     const team_members: ITeamMember[] = await fetchTeamMembers();
-  //     setTeamMembers(team_members.filter((item) => item.team_id == channel_id));
-  //   }
-  //   fetchData();
-  // }, [channel_id]);
 
   useEffect(() => {
     async function fetchData() {
@@ -365,8 +355,9 @@ const ChannelDashBoard = () => {
           <TabsList className="bg-custom-secondary p-1 rounded-lg">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
-            {/* <TabsTrigger value="participation">Participation</TabsTrigger> */}
             <TabsTrigger value="responses">Responses</TabsTrigger>
+            <TabsTrigger value="kudos">Kudos</TabsTrigger>
+            <TabsTrigger value="polls">Polls</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
@@ -385,9 +376,13 @@ const ChannelDashBoard = () => {
 
           <TeamResponses channel_id={channel_id || ""} />
 
-          {/* <TabsContent value="settings">
-           
-          </TabsContent> */}
+          <TeamKudos />
+
+          <TeamPollAnalytics
+            channel_id={channel_id || ""}
+            teamMembers={teamMembers}
+          />
+
           <TeamSettings channel_id={channel_id || ""} />
         </Tabs>
       </div>
