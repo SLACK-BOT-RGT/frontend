@@ -410,6 +410,29 @@ export const fetchTeamPolls = async ({ team_id }: { team_id: string }) => {
 
 }
 
+export const deletePoll = async ({ poll_id }: { poll_id: number }) => {
+
+    const token = localStorage.getItem("accesstoken");
+    try {
+        const response = await axios.delete(`${API_URL}/polls/${poll_id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        return response.data.data;
+    } catch (error: unknown) {
+
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 401) {
+                return { success: false, status: 401 };
+            }
+        }
+        throw error;
+    }
+
+}
+
 export const fetchTeamLeaderboard = async ({ team_id, month }: { team_id: string, month: Date }) => {
 
     const token = localStorage.getItem("accesstoken");
