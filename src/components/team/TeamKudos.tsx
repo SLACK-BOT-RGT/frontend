@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -58,6 +58,11 @@ const TeamKudos = ({ channel_id }: { channel_id: string }) => {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [leader, setLeader] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchLeaderBoard(new Date());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchLeaderBoard = async (newDate: Date) => {
     setLoading(true);
