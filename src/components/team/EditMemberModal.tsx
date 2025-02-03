@@ -71,7 +71,7 @@ const EditMemberModal = ({ team_member }: EditMemberModalProps) => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Delete Member</DialogTitle>
+          <DialogTitle>Edit Member</DialogTitle>
           <DialogDescription>
             You are about to Edit <strong>{team_member.User.name}</strong> from
             this team. Enter <strong>{team_member.User.email}</strong> to

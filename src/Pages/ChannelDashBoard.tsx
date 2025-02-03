@@ -1,30 +1,25 @@
 import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  // TabsContent,
-} from "../components/ui/tabs";
-import {
   fetchMembersResponsesStatusToday,
   fetchMembersResponsesStatusWeek,
   fetchTeamMembers,
 } from "../api/team_members";
-import { useAppSelector } from "../hooks/hooks";
-import { useParams } from "react-router-dom";
-// import { useQuery } from "@tanstack/react-query";
-// import Loading from "../components/Loading";
 import { Button } from "../components/ui/button";
 import { calculateAverageResponseTime } from "../utils";
 import { format, startOfWeek, endOfWeek } from "date-fns";
 import { ITeamMember, StandupResponse } from "../types/interfaces";
 import { Loader2 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { useAppSelector } from "../hooks/hooks";
 import { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "../hooks/use-toast";
 import autoTable from "jspdf-autotable";
 import jsPDF from "jspdf";
+import TeamKudos from "../components/team/TeamKudos";
 import TeamMembers from "../components/team/TeamMembers";
 import TeamOverview, { IStatus } from "../components/team/TeamOverview";
+import TeamPollAnalytics from "../components/team/TeamPollsAnalytics";
 import TeamResponses from "../components/team/TeamResponses";
 import TeamSettings from "../components/team/TeamSettings";
 
@@ -58,19 +53,13 @@ const ChannelDashBoard = () => {
   const [teamMembersStatusWeek, setTeamMembersStatusWeek] = useState<IStatus[]>(
     []
   );
-  console.log("====================================");
-  console.log("teamMembersStatusToday=>", teamMembersStatusToday);
-  console.log("====================================");
 
   const { channel_id } = useParams();
   const { toast } = useToast();
   const { channels } = useAppSelector((state) => state.channels);
+  const { standupResponses } = useAppSelector((state) => state.channels);
 
   const channel = channels?.find((item) => item.id.toString() === channel_id);
-
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const { standupResponses } = useAppSelector((state) => state.channels);
 
   const filteredData = useMemo(() => {
     return standupResponses.filter((entry) => {
@@ -86,74 +75,21 @@ const ChannelDashBoard = () => {
       // Check if the entry's submission date is within the range
       const isWithinDateRange =
         submittedDate >= startDate && submittedDate <= endDate;
-
-      // Search query match
-      const searchMatch =
-        searchQuery === "" ||
-        entry.member.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        entry.team.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        entry.submittedAt.toLowerCase().includes(searchQuery.toLowerCase());
-
       // Return only entries that match all filters
-      return searchMatch && filterByTeam && isWithinDateRange;
+      return filterByTeam && isWithinDateRange;
     });
-  }, [searchQuery, standupResponses, channel_id]);
-
-  console.log("====================================");
-  console.log("standupResponses=>standupResponses=>", standupResponses);
-  console.log("====================================");
+  }, [standupResponses, channel_id]);
 
   const { data: team_members } = useQuery<ITeamMember[]>({
     queryFn: fetchTeamMembers,
     queryKey: ["team-members"],
   });
 
-  // const { data: team_members_status_today } = useQuery<IStatus[]>({
-  //   queryFn: handleMembersResponsesStatusToday,
-  //   queryKey: ["team-members-status-today"],
-  // });
-
-  // const { data: team_members_status_week } = useQuery<IStatus[]>({
-  //   queryFn: handleMembersResponsesStatusWeek,
-  //   queryKey: ["team-members-status-week"],
-  // });
-
-  // async function handleMembersResponsesStatusToday() {
-  //   return await fetchMembersResponsesStatusToday({
-  //     team_id: channel_id as string,
-  //   });
-  // }
-  // async function handleMembersResponsesStatusWeek() {
-  //   return await fetchMembersResponsesStatusWeek({
-  //     team_id: channel_id as string,
-  //   });
-  // }
-
   useEffect(() => {
     if (team_members) {
       setTeamMembers(team_members.filter((item) => item.team_id == channel_id));
     }
-    // if()
-    // setTeamMembersStatusToday(team_members_status_today || []);
-    // setTeamMembersStatusWeek(team_members_status_week || []);
-  }, [
-    channel_id,
-    team_members,
-    // team_members_status_today,
-    // team_members_status_week,
-  ]);
-  // useEffect(() => {
-  //   queryClient.invalidateQueries({ queryKey: ["team-members"] });
-  //   queryClient.invalidateQueries({ queryKey: ["eam-members-status-today"] });
-  //   queryClient.invalidateQueries({ queryKey: ["team-members-status-week"] });
-  // }, [channel_id, queryClient]);
-  // useEffect(() => {
-  //   async function fetchData() {
-  //     const team_members: ITeamMember[] = await fetchTeamMembers();
-  //     setTeamMembers(team_members.filter((item) => item.team_id == channel_id));
-  //   }
-  //   fetchData();
-  // }, [channel_id]);
+  }, [channel_id, team_members]);
 
   useEffect(() => {
     async function fetchData() {
@@ -365,8 +301,9 @@ const ChannelDashBoard = () => {
           <TabsList className="bg-custom-secondary p-1 rounded-lg">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
-            {/* <TabsTrigger value="participation">Participation</TabsTrigger> */}
             <TabsTrigger value="responses">Responses</TabsTrigger>
+            <TabsTrigger value="kudos">Kudos</TabsTrigger>
+            <TabsTrigger value="polls">Polls</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
@@ -385,9 +322,13 @@ const ChannelDashBoard = () => {
 
           <TeamResponses channel_id={channel_id || ""} />
 
-          {/* <TabsContent value="settings">
-           
-          </TabsContent> */}
+          <TeamKudos channel_id={channel_id || ""} />
+
+          <TeamPollAnalytics
+            channel_id={channel_id || ""}
+            teamMembers={teamMembers}
+          />
+
           <TeamSettings channel_id={channel_id || ""} />
         </Tabs>
       </div>
