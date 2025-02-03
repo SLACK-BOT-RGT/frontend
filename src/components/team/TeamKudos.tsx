@@ -1,51 +1,73 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { TabsContent } from "../../components/ui/tabs";
+import { fetchTeamLeaderboard } from "../../api/team_members";
 
-const TeamKudos = () => {
+interface LeaderboardEntry {
+  id: string;
+  name: string;
+  kudosReceived: number;
+  topCategory: string;
+  kudosGiven: number;
+  highlights: string[];
+}
+
+// Sample data - replace with your actual data
+// const leaderboardData = [
+//   {
+//     id: 1,
+//     name: "Sarah Parker",
+//     avatar: "/api/placeholder/32/32",
+//     kudosReceived: 45,
+//     topCategory: "Helpful",
+//     kudosGiven: 12,
+//     highlights: ["Excellent team support", "Outstanding code reviews"],
+//   },
+//   {
+//     id: 2,
+//     name: "John Davis",
+//     avatar: "/api/placeholder/32/32",
+//     kudosReceived: 38,
+//     topCategory: "Innovation",
+//     kudosGiven: 15,
+//     highlights: ["Creative problem solving", "Great mentorship"],
+//   },
+//   {
+//     id: 3,
+//     name: "Lisa Wong",
+//     avatar: "/api/placeholder/32/32",
+//     kudosReceived: 32,
+//     topCategory: "Teamwork",
+//     kudosGiven: 20,
+//     highlights: ["Cross-team collaboration", "Positive attitude"],
+//   },
+//   {
+//     id: 4,
+//     name: "QQQQ Wong",
+//     avatar: "/api/placeholder/32/32",
+//     kudosReceived: 32,
+//     topCategory: "Teamwork",
+//     kudosGiven: 20,
+//     highlights: ["Cross-team collaboration", "Positive attitude"],
+//   },
+// ];
+
+const TeamKudos = ({ channel_id }: { channel_id: string }) => {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [leader, setLeader] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Sample data - replace with your actual data
-  const leaderboardData = [
-    {
-      id: 1,
-      name: "Sarah Parker",
-      avatar: "/api/placeholder/32/32",
-      kudosReceived: 45,
-      topCategory: "Helpful",
-      kudosGiven: 12,
-      highlights: ["Excellent team support", "Outstanding code reviews"],
-    },
-    {
-      id: 2,
-      name: "John Davis",
-      avatar: "/api/placeholder/32/32",
-      kudosReceived: 38,
-      topCategory: "Innovation",
-      kudosGiven: 15,
-      highlights: ["Creative problem solving", "Great mentorship"],
-    },
-    {
-      id: 3,
-      name: "Lisa Wong",
-      avatar: "/api/placeholder/32/32",
-      kudosReceived: 32,
-      topCategory: "Teamwork",
-      kudosGiven: 20,
-      highlights: ["Cross-team collaboration", "Positive attitude"],
-    },
-    {
-      id: 4,
-      name: "QQQQ Wong",
-      avatar: "/api/placeholder/32/32",
-      kudosReceived: 32,
-      topCategory: "Teamwork",
-      kudosGiven: 20,
-      highlights: ["Cross-team collaboration", "Positive attitude"],
-    },
-  ];
+  const fetchLeaderBoard = async (newDate: Date) => {
+    setLoading(true);
+    const response = await fetchTeamLeaderboard({
+      team_id: channel_id,
+      month: newDate,
+    });
+    setLeader(response);
+    setLoading(false);
+  };
 
   const navigateMonth = (direction: string) => {
     const newDate = new Date(selectedMonth);
@@ -55,6 +77,7 @@ const TeamKudos = () => {
       newDate.setMonth(newDate.getMonth() + 1);
     }
     setSelectedMonth(newDate);
+    fetchLeaderBoard(newDate);
   };
 
   const formatMonth = (date: Date) => {
@@ -131,46 +154,63 @@ const TeamKudos = () => {
         </CardHeader>
         <CardContent className="pt-6">
           <div className="space-y-6">
-            {leaderboardData.map((user, index) => (
+            {loading && (
               <div
-                key={user.id}
-                className={`flex items-start p-4 rounded-lg ${
-                  index === 0
-                    ? "bg-green-500/20"
-                    : index === 1
-                    ? "bg-blue-500/20"
-                    : index === 2
-                    ? "bg-red-500/20"
-                    : "bg-slate-800/20"
-                }`}
+                className={`flex items-start p-4 rounded-lg bg-slate-800/20`}
               >
-                <div className="flex items-center space-x-4 flex-1">
-                  <div className="flex-shrink-0">
-                    {getTrophyIcon(index, user.name)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-lg">{user.name}</h3>
-                      <span className="text-2xl font-bold text-blue-600">
-                        {user.kudosReceived}
-                      </span>
+                <h1>Loading...</h1>
+              </div>
+            )}
+            {leader.length > 0 ? (
+              leader.map((user, index) => (
+                <div
+                  key={user.id}
+                  className={`flex items-start p-4 rounded-lg ${
+                    index === 0
+                      ? "bg-green-500/20"
+                      : index === 1
+                      ? "bg-blue-500/20"
+                      : index === 2
+                      ? "bg-red-500/20"
+                      : "bg-slate-800/20"
+                  }`}
+                >
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="flex-shrink-0">
+                      {getTrophyIcon(index, user.name)}
                     </div>
-                    <div className="mt-2 space-y-1">
-                      <div className="flex items-center text-sm text-gray-400">
-                        <span className="bg-blue-100 px-2 py-1 rounded-full text-blue-700">
-                          {user.topCategory}
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold text-lg">{user.name}</h3>
+                        <span className="text-2xl font-bold text-blue-600">
+                          {user.kudosReceived}
                         </span>
-                        <span className="mx-2">•</span>
-                        <span>{user.kudosGiven} kudos given</span>
                       </div>
-                      <div className="text-sm text-gray-400">
-                        {user.highlights.join(" • ")}
+                      <div className="mt-2 space-y-1">
+                        <div className="flex items-center text-sm text-gray-400">
+                          {user.topCategory && (
+                            <span className="bg-blue-100 px-2 py-1 rounded-full text-blue-700">
+                              {user.topCategory}
+                            </span>
+                          )}
+                          <span className="mx-2">•</span>
+                          <span>{user.kudosGiven} kudos given</span>
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          {user.highlights.join(" • ")}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div
+                className={`flex items-start p-4 rounded-lg bg-slate-800/20`}
+              >
+                <h1>No Data</h1>
               </div>
-            ))}
+            )}
           </div>
         </CardContent>
       </Card>
