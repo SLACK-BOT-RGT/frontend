@@ -7,26 +7,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-// import {
-//   BarChart,
-//   Bar,
-//   XAxis,
-//   YAxis,
-//   CartesianGrid,
-//   Tooltip,
-//   ResponsiveContainer,
-//   PieChart,
-//   Pie,
-//   Cell,
-// } from "recharts";
 import { Users, Clock, TrendingUp, Filter } from "lucide-react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { TabsContent } from "../../components/ui/tabs";
-// import { Button } from "../ui/button";
 import CreatePollModal from "./CreatePollModal";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { IPoll, ITeamMember, IUser } from "../../types/interfaces";
 import { fetchTeamPolls } from "../../api/team_members";
+import RemovePollModal from "./RemovePollModal";
 
 // const polls = [
 //   {
@@ -425,6 +413,9 @@ const TeamPollAnalytics = ({
                           </Fragment>
                         );
                       })}
+                      <div className="flex justify-end">
+                        <RemovePollModal poll={poll} />
+                      </div>
                     </div>
                   )}
                 </div>
