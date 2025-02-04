@@ -35,10 +35,6 @@ const TeamResponses = ({ channel_id }: TeamResponsesProps) => {
     });
   }, [searchQuery, standupResponses, channel_id]);
 
-  console.log("====================================");
-  console.log("standupResponses=>standupResponses=>", standupResponses);
-  console.log("====================================");
-
   return (
     <TabsContent value="responses">
       {/* Add response details and history */}
@@ -97,7 +93,7 @@ const TeamResponses = ({ channel_id }: TeamResponsesProps) => {
                     </Badge>
                   </div>
 
-                  {entry.status === "Completed" && (
+                  {entry.status === "responded" && (
                     <div className="space-y-3 text-sm">
                       {entry.standup.map((item, index) => (
                         <div key={index}>
@@ -118,7 +114,8 @@ const TeamResponses = ({ channel_id }: TeamResponsesProps) => {
                       </div> */}
                       <div className="text-right">
                         <span className="text-xs text-gray-400">
-                          Submitted at {entry.submittedAt}
+                          Submitted on{" "}
+                          {new Date(entry.date).toLocaleDateString("en-US")}
                         </span>
                       </div>
                     </div>
