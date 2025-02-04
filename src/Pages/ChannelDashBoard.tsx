@@ -1,21 +1,20 @@
+import { Loader2 } from "lucide-react";
+import { startOfWeek, endOfWeek } from "date-fns";
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+
 import {
   fetchMembersResponsesStatusToday,
   fetchMembersResponsesStatusWeek,
   fetchTeamMembers,
 } from "../api/team_members";
 import { Button } from "../components/ui/button";
-import { calculateAverageResponseTime } from "../utils";
-import { format, startOfWeek, endOfWeek } from "date-fns";
-import { ITeamMember, StandupResponse } from "../types/interfaces";
-import { Loader2 } from "lucide-react";
+import { handleGenerateReport } from "../utils";
+import { ITeamMember } from "../types/interfaces";
 import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { useAppSelector } from "../hooks/hooks";
-import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { useToast } from "../hooks/use-toast";
-import autoTable from "jspdf-autotable";
-import jsPDF from "jspdf";
 import TeamKudos from "../components/team/TeamKudos";
 import TeamMembers from "../components/team/TeamMembers";
 import TeamOverview, { IStatus } from "../components/team/TeamOverview";
@@ -27,22 +26,6 @@ declare module "jspdf" {
   interface jsPDF {
     lastAutoTable: { finalY: number }; // Add the lastAutoTable property
   }
-}
-
-interface TeamStats {
-  totalMembers: number;
-  averageParticipation: number;
-  onTimeSubmissions: number;
-  averageResponseTime: string;
-  missedStandups: number;
-}
-
-interface TeamReport {
-  teamName: string;
-  period: string;
-  members: ITeamMember[];
-  standupEntries: StandupResponse[];
-  stats: TeamStats;
 }
 
 const ChannelDashBoard = () => {
@@ -111,163 +94,6 @@ const ChannelDashBoard = () => {
     fetchData();
   }, [channel_id]);
 
-  // if (isLoading) return <Loading />;
-
-  const generateTeamReport = async (teamData: TeamReport): Promise<Blob> => {
-    // Create new PDF document
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.width;
-
-    // Add header
-    doc.setFontSize(20);
-    doc.text(`Team Report: ${teamData.teamName}`, pageWidth / 2, 20, {
-      align: "center",
-    });
-    doc.setFontSize(12);
-    doc.text(`Report Period: ${teamData.period}`, pageWidth / 2, 30, {
-      align: "center",
-    });
-
-    // Add team statistics
-    doc.setFontSize(14);
-    doc.text("Team Statistics", 14, 45);
-
-    const stats = [
-      ["Total Members", teamData.members.length],
-      ["Average Participation", `${teamData.stats.averageParticipation}%`],
-      ["Total Submissions", teamData.stats.onTimeSubmissions],
-      ["Average Response Time", teamData.stats.averageResponseTime],
-      ["Missed Standups", teamData.stats.missedStandups],
-    ];
-
-    autoTable(doc, {
-      startY: 50,
-      head: [["Metric", "Value"]],
-      body: stats,
-      theme: "grid",
-      headStyles: { fillColor: [79, 70, 229] }, // indigo-600
-    });
-
-    // Add team members section
-    doc.text("Team Members", 14, doc.lastAutoTable.finalY + 15);
-
-    const memberData = teamData.members.map((member) => [
-      member.User.name,
-      member.role,
-    ]);
-
-    autoTable(doc, {
-      startY: doc.lastAutoTable.finalY + 20,
-      head: [["Name", "Role"]],
-      body: memberData,
-      theme: "grid",
-      headStyles: { fillColor: [79, 70, 229] },
-    });
-
-    // Add standup completion summary
-    doc.text("Standup Summary", 14, doc.lastAutoTable.finalY + 15);
-
-    const standupData = teamData.standupEntries.map((entry) => [
-      entry.member,
-      entry.status,
-      entry.submittedAt,
-      entry.standup
-        .map(
-          (item: { question: string; response: string }, index) =>
-            `${index + 1 + "." + item.question}: ${item.response}`
-        )
-        .join("; "),
-    ]);
-
-    autoTable(doc, {
-      startY: doc.lastAutoTable.finalY + 20,
-      head: [["Member", "Status", "Submitted At", "Standups"]],
-      body: standupData,
-      theme: "grid",
-      headStyles: { fillColor: [79, 70, 229] },
-    });
-
-    // Add footer
-    const footer = `Generated on ${format(new Date(), "PPP")}`;
-    doc.setFontSize(10);
-    doc.text(footer, pageWidth / 2, doc.internal.pageSize.height - 10, {
-      align: "center",
-    });
-
-    // Return the PDF as a blob
-    return doc.output("blob");
-  };
-
-  const calculateTeamStats = (
-    entries: StandupResponse[],
-    members: ITeamMember[]
-  ) => {
-    const totalEntries = entries.length;
-
-    // const participation =
-    //   (complete_members / teamMembersStatusToday.length) * 100 || 0;
-    const completedEntries = entries.filter(
-      (entry) => entry.status === "responded"
-    ).length;
-    const onTimeEntries = completedEntries;
-
-    const averageResponseTime = calculateAverageResponseTime(
-      teamMembersStatusToday
-    );
-
-    return {
-      totalMembers: members.length,
-      averageParticipation: (completedEntries / totalEntries) * 100,
-      onTimeSubmissions: onTimeEntries,
-      averageResponseTime: averageResponseTime,
-      missedStandups: totalEntries - completedEntries,
-    };
-  };
-
-  // Example usage in your component:
-  const handleGenerateReport = async () => {
-    try {
-      // Get current week's date range
-      const startDate = startOfWeek(new Date());
-      const endDate = endOfWeek(new Date());
-      const period = `${format(startDate, "PPP")} - ${format(endDate, "PPP")}`;
-
-      // Sample data - replace with actual data from your application
-      const teamData: TeamReport = {
-        teamName: "Frontend Team",
-        period: period,
-        members: teamMembers,
-        standupEntries: filteredData,
-        stats: {
-          /* will be calculated */
-        } as TeamStats,
-      };
-
-      // Calculate statistics
-      teamData.stats = calculateTeamStats(
-        teamData.standupEntries,
-        teamData.members
-      );
-
-      // Generate and download the report
-      const pdfBlob = await generateTeamReport(teamData);
-      const url = URL.createObjectURL(pdfBlob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${teamData.teamName}-Report-${format(
-        new Date(),
-        "yyyy-MM-dd"
-      )}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error generating report:", error);
-      // Handle error appropriately
-    }
-  };
-
   return (
     <div className="min-h-screen bg-custom-primary p-8">
       <div className="max-w-7xl mx-auto">
@@ -289,7 +115,11 @@ const ChannelDashBoard = () => {
                     </div>
                   ),
                 });
-                await handleGenerateReport();
+                await handleGenerateReport({
+                  filteredData,
+                  teamMembers,
+                  teamMembersStatusToday,
+                });
               }}
             >
               Generate Report
@@ -315,10 +145,6 @@ const ChannelDashBoard = () => {
           />
 
           <TeamMembers team_members={teamMembers} />
-
-          {/* Add detailed participation analytics */}
-          {/* <TabsContent value="participation">
-          </TabsContent> */}
 
           <TeamResponses channel_id={channel_id || ""} />
 

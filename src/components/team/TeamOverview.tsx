@@ -16,9 +16,23 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { BarChart, Bar } from "recharts";
-import { CheckCircle, Clock, Users, XCircle } from "lucide-react";
+import {
+  CheckCircle,
+  Clock,
+  Users,
+  XCircle,
+  Smile,
+  Award,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { ITeamMember } from "../../types/interfaces";
 import { calculateAverageResponseTime } from "../../utils";
+
+import { PieChart, Pie, Cell } from "recharts";
+import { useEffect, useState } from "react";
+import { getMetrics } from "../../api/team_members";
 
 // const participationData = [
 //   { date: "Mon", rate: 92 },
@@ -42,6 +56,20 @@ import { calculateAverageResponseTime } from "../../utils";
 //   { name: "Mike Johnson", status: "Responded", time: "9:45 AM" },
 // ];
 
+// Sample data - replace with actual data
+// const trendData = [
+//   { week: "W1", mood: 85, kudos: 45, pollParticipation: 90 },
+//   { week: "W2", mood: 78, kudos: 52, pollParticipation: 85 },
+//   { week: "W3", mood: 88, kudos: 38, pollParticipation: 92 },
+//   { week: "W4", mood: 92, kudos: 60, pollParticipation: 88 },
+// ];
+
+// const kudosCategories = [
+//   { name: "Teamwork", value: 35 },
+//   { name: "Innovation", value: 25 },
+//   { name: "Leadership", value: 20 },
+//   { name: "Support", value: 20 },
+// ];
 export interface IStatus {
   name: string;
   status: string;
@@ -53,12 +81,66 @@ interface TeamOverviewProps {
   team_members_status_today: IStatus[];
   team_members_status_week: IStatus[];
 }
+interface DataProps {
+  trendData: {
+    week: string;
+    mood: number;
+    kudos: number;
+    pollParticipation: number;
+  }[];
+  kudosCategories: {
+    name: string;
+    value: number;
+  }[];
+  quickestResponder: {
+    userId: string;
+    name: string;
+    avgResponseTime: number;
+  };
+  topPerformer: {
+    id: string;
+    name: string;
+    kudosReceived: number;
+    kudosGiven: number;
+    topCategory: string;
+    highlights: string[];
+  };
+  collaboration: {
+    id: string;
+    name: string;
+    kudosReceived: number;
+    avgKudosGiven: number;
+    kudosGiven: number;
+    topCategory: string;
+    highlights: string[];
+  };
+}
 const TeamOverview = ({
   team_members,
   team_members_status_today,
   team_members_status_week,
   channel_id,
 }: TeamOverviewProps) => {
+  // const [timeRange, setTimeRange] = useState("month");
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
+  // const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<DataProps>();
+
+  useEffect(() => {
+    fetchLeaderBoard(selectedMonth);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fetchLeaderBoard = async (newDate: Date) => {
+    // setLoading(true);
+    const response = await getMetrics({
+      team_id: channel_id,
+      month: newDate,
+    });
+    setData(response);
+    // setLoading(false);
+  };
+
   const complete_members = team_members_status_today.filter(
     (item) => item.status == "responded"
   ).length;
@@ -67,35 +149,35 @@ const TeamOverview = ({
     (member) => member.team_id == channel_id
   );
 
-  const generateResponseTimeData = (
-    teamMembers: { name: string; status: string; time: string }[]
-  ) => {
-    // Helper function to extract the hour in 12-hour format with AM/PM
-    const extractHour = (isoString: string): string => {
-      const date = new Date(isoString);
-      const hours = date.getHours();
-      const period = hours >= 12 ? "PM" : "AM";
-      const hour12 = hours % 12 || 12; // Convert 24-hour to 12-hour format
-      return `${hour12} ${period}`;
-    };
+  // const generateResponseTimeData = (
+  //   teamMembers: { name: string; status: string; time: string }[]
+  // ) => {
+  //   // Helper function to extract the hour in 12-hour format with AM/PM
+  //   const extractHour = (isoString: string): string => {
+  //     const date = new Date(isoString);
+  //     const hours = date.getHours();
+  //     const period = hours >= 12 ? "PM" : "AM";
+  //     const hour12 = hours % 12 || 12; // Convert 24-hour to 12-hour format
+  //     return `${hour12} ${period}`;
+  //   };
 
-    // Initialize an object to count responses per hour
-    const hourlyCounts: Record<string, number> = {};
+  //   // Initialize an object to count responses per hour
+  //   const hourlyCounts: Record<string, number> = {};
 
-    // Process each member's response time
-    teamMembers.forEach((member) => {
-      if (member.status === "responded") {
-        const hour = extractHour(member.time); // Properly format the time
-        hourlyCounts[hour] = (hourlyCounts[hour] || 0) + 1;
-      }
-    });
+  //   // Process each member's response time
+  //   teamMembers.forEach((member) => {
+  //     if (member.status === "responded") {
+  //       const hour = extractHour(member.time); // Properly format the time
+  //       hourlyCounts[hour] = (hourlyCounts[hour] || 0) + 1;
+  //     }
+  //   });
 
-    // Convert the counts object to an array of { time, count } objects
-    return Object.entries(hourlyCounts).map(([time, count]) => ({
-      time,
-      count,
-    }));
-  };
+  //   // Convert the counts object to an array of { time, count } objects
+  //   return Object.entries(hourlyCounts).map(([time, count]) => ({
+  //     time,
+  //     count,
+  //   }));
+  // };
 
   const generateParticipationData = (
     teamMembers: { name: string; status: string; time: string }[]
@@ -141,7 +223,27 @@ const TeamOverview = ({
 
   const participationData = generateParticipationData(team_members_status_week);
 
-  const responseTimeData = generateResponseTimeData(team_members_status_today);
+  // const responseTimeData = generateResponseTimeData(team_members_status_today);
+
+  const COLORS = ["#60A5FA", "#34D399", "#F87171", "#A78BFA", "#FF8C00E7"];
+
+  const navigateMonth = (direction: string) => {
+    const newDate = new Date(selectedMonth);
+    if (direction === "prev") {
+      newDate.setMonth(newDate.getMonth() - 1);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
+    setSelectedMonth(newDate);
+    fetchLeaderBoard(newDate);
+  };
+
+  const formatMonth = (date: Date) => {
+    return new Intl.DateTimeFormat("en-US", {
+      month: "long",
+      year: "numeric",
+    }).format(date);
+  };
 
   return (
     <TabsContent value="overview">
@@ -166,7 +268,14 @@ const TeamOverview = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(complete_members / team_members_status_today.length) * 100 || 0}
+              {isNaN(
+                (complete_members / team_members_status_today.length) * 100
+              )
+                ? 0
+                : (
+                    (complete_members / team_members_status_today.length) *
+                    100
+                  ).toFixed(2)}
               %
             </div>
             <div className="text-xs text-gray-500">
@@ -206,14 +315,102 @@ const TeamOverview = ({
           </CardContent>
         </Card>
       </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <Card className="md:col-span-2 bg-custom-secondary border-custom-secondary text-gray-300 flex items-center justify-between">
+          <CardHeader>
+            <CardTitle>Monthly stats</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => navigateMonth("prev")}
+                  className="p-1 hover:bg-gray-700 rounded"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-5 h-5 text-gray-500" />
+                  <span className="font-medium">
+                    {formatMonth(selectedMonth)}
+                  </span>
+                </div>
+                <button
+                  onClick={() => navigateMonth("next")}
+                  className="p-1 hover:bg-gray-700 rounded"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        {/* Team Insights */}
+        <Card className="md:col-span-2 bg-custom-secondary border-custom-secondary text-gray-300">
+          <CardHeader>
+            <CardTitle>Team Insights</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {data?.collaboration &&
+            data?.topPerformer &&
+            data?.quickestResponder ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-blue-500/20 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Smile className="w-5 h-5 text-blue-500" />
+                    <span className="font-medium">Quick Responder</span>
+                  </div>
+                  <p className="mt-2 text-sm">
+                    <strong className="tracking-wider">
+                      @{data.quickestResponder?.name}
+                    </strong>{" "}
+                    has the fastest average response time of{" "}
+                    {data.quickestResponder?.avgResponseTime} hrs.
+                  </p>
+                </div>
+                <div className="p-4 bg-green-500/20 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Award className="w-5 h-5 text-green-500" />
+                    <span className="font-medium">Top Performer</span>
+                  </div>
+                  <p className="mt-2 text-sm">
+                    <strong className="tracking-wider">
+                      @{data.topPerformer?.name}
+                    </strong>{" "}
+                    is the top performer with {data.topPerformer?.kudosReceived}{" "}
+                    kudos.
+                  </p>
+                </div>
+                <div className="p-4 bg-purple-500/20 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Users className="w-5 h-5 text-purple-500" />
+                    <span className="font-medium">Collaboration</span>
+                  </div>
+                  <p className="mt-2 text-sm">
+                    <strong className="tracking-wider">
+                      @{data.collaboration?.name}
+                    </strong>{" "}
+                    is the best collaborator with{" "}
+                    {data.collaboration?.avgKudosGiven} points.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="">
+                <p>No data</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
         <Card className="bg-custom-secondary border-custom-secondary text-gray-300">
           <CardHeader>
             <CardTitle>Weekly Participation Rate</CardTitle>
-            <CardDescription>
+            {/* <CardDescription>
               Team response rate over the past week
-            </CardDescription>
+            </CardDescription> */}
           </CardHeader>
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -233,7 +430,7 @@ const TeamOverview = ({
           </CardContent>
         </Card>
 
-        <Card className="bg-custom-secondary border-custom-secondary text-gray-300">
+        {/* <Card className="bg-custom-secondary border-custom-secondary text-gray-300">
           <CardHeader>
             <CardTitle>Response Time Distribution</CardTitle>
             <CardDescription>
@@ -250,6 +447,104 @@ const TeamOverview = ({
                 <Bar dataKey="count" fill="#4f46e5" />
               </BarChart>
             </ResponsiveContainer>
+          </CardContent>
+        </Card> */}
+        {/* Combined Trend Chart */}
+        <Card className="bg-custom-secondary border-custom-secondary text-gray-300">
+          <CardHeader>
+            <CardTitle>Combined Performance Metrics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={data?.trendData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="week" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="mood"
+                    stroke="#60A5FA"
+                    name="Team Mood"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="kudos"
+                    stroke="#34D399"
+                    name="Kudos"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="pollParticipation"
+                    stroke="#F87171"
+                    name="Poll Participation"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Team Mood Distribution */}
+        <Card className="bg-custom-secondary border-custom-secondary text-gray-300">
+          <CardHeader>
+            <CardTitle>Mood Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={[
+                    { mood: "Very Happy", count: 45 },
+                    { mood: "Happy", count: 30 },
+                    { mood: "Neutral", count: 15 },
+                    { mood: "Unhappy", count: 10 },
+                  ]}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mood" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#60A5FA" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Kudos Distribution */}
+        <Card className="bg-custom-secondary border-custom-secondary text-gray-300">
+          <CardHeader>
+            <CardTitle>Kudos Categories</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={data?.kudosCategories}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) =>
+                      `${name} (${(percent * 100).toFixed(0)}%)`
+                    }
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {data?.kudosCategories.map((_entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
       </div>

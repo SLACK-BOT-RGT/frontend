@@ -5,7 +5,7 @@ const Loading = () => {
     <div className="flex w-screen h-screen bg-custom-secondary justify-center items-center">
       <OrbitProgress
         variant="track-disc"
-        color="#26244f"
+        color="gray"
         size="medium"
         text=""
         textColor=""

@@ -156,10 +156,6 @@ const StandupDashboard = () => {
     });
   }, [selectedTeam, selectedDate, statusFilter, searchQuery, standupResponses]);
 
-  console.log("=========filteredData============");
-  console.log("filteredData=>", filteredData);
-  console.log("=========filteredData=============");
-
   const exportToCSV = (data: StandupResponse[], filename: string) => {
     // Define CSV headers
     const headers = ["Member", "Team", "Status", "Standup", "Submitted At"];
