@@ -114,6 +114,10 @@ interface DataProps {
     topCategory: string;
     highlights: string[];
   };
+  moods: {
+    mood: string;
+    count: number;
+  }[];
 }
 const TeamOverview = ({
   team_members,
@@ -129,7 +133,7 @@ const TeamOverview = ({
   useEffect(() => {
     fetchLeaderBoard(selectedMonth);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [channel_id]);
 
   const fetchLeaderBoard = async (newDate: Date) => {
     // setLoading(true);
@@ -206,7 +210,7 @@ const TeamOverview = ({
         const day = getDayOfWeek(member.time);
         if (dayStats[day]) {
           dayStats[day].total += 1;
-          if (member.status === "Responded") {
+          if (member.status === "responded") {
             dayStats[day].responded += 1;
           }
         }
@@ -223,6 +227,9 @@ const TeamOverview = ({
 
   const participationData = generateParticipationData(team_members_status_week);
 
+  console.log("====================================");
+  console.log("participationData=>", participationData);
+  console.log("====================================");
   // const responseTimeData = generateResponseTimeData(team_members_status_today);
 
   const COLORS = ["#60A5FA", "#34D399", "#F87171", "#A78BFA", "#FF8C00E7"];
@@ -494,14 +501,7 @@ const TeamOverview = ({
           <CardContent>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={[
-                    { mood: "Very Happy", count: 45 },
-                    { mood: "Happy", count: 30 },
-                    { mood: "Neutral", count: 15 },
-                    { mood: "Unhappy", count: 10 },
-                  ]}
-                >
+                <BarChart data={data?.moods}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="mood" />
                   <YAxis />
