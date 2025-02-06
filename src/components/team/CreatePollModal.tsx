@@ -11,7 +11,7 @@ import {
 
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
-import { Plus, Minus } from "lucide-react";
+import { Plus, Minus, Loader2 } from "lucide-react";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import {
@@ -24,13 +24,15 @@ import {
 import { IUser } from "../../types/interfaces";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addTeamPolls } from "../../api/team_members";
-
+import { useToast } from "../../hooks/use-toast";
 interface CreatePollModalProps {
   channel_id: string;
 }
 
 const CreatePollModal = ({ channel_id }: CreatePollModalProps) => {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+
   const [isOpen, setIsOpen] = useState(false);
   const [pollData, setPollData] = useState({
     question: "",
@@ -88,6 +90,15 @@ const CreatePollModal = ({ channel_id }: CreatePollModalProps) => {
 
   const handleSubmit = async () => {
     setIsOpen(false);
+    toast({
+      title: "Creating a poll",
+      description: (
+        <div className="flex items-center gap-2">
+          <Loader2 className="animate-spin h-4 w-4 text-gray-600" />
+          <span>Loading, please wait...</span>
+        </div>
+      ),
+    });
     // Get the current time as start_time
     const start_time = new Date();
 
