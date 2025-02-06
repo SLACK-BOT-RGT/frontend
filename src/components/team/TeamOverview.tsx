@@ -27,108 +27,28 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { ITeamMember } from "../../types/interfaces";
+import { IDataProps, IStatus, ITeamMember } from "../../types/interfaces";
 import { calculateAverageResponseTime } from "../../utils";
 
 import { PieChart, Pie, Cell } from "recharts";
 import { useEffect, useState } from "react";
 import { getMetrics } from "../../api/team_members";
 
-// const participationData = [
-//   { date: "Mon", rate: 92 },
-//   { date: "Tue", rate: 88 },
-//   { date: "Wed", rate: 95 },
-//   { date: "Thu", rate: 85 },
-//   { date: "Fri", rate: 90 },
-// ];
-
-// const responseTimeData = [
-//   { time: "9 AM", count: 5 },
-//   { time: "10 AM", count: 8 },
-//   { time: "11 AM", count: 12 },
-//   { time: "12 PM", count: 3 },
-//   { time: "1 PM", count: 2 },
-// ];
-
-// const teamMembers = [
-//   { name: "John Doe", status: "Responded", time: "9:15 AM" },
-//   { name: "Jane Smith", status: "Missed", time: "-" },
-//   { name: "Mike Johnson", status: "Responded", time: "9:45 AM" },
-// ];
-
-// Sample data - replace with actual data
-// const trendData = [
-//   { week: "W1", mood: 85, kudos: 45, pollParticipation: 90 },
-//   { week: "W2", mood: 78, kudos: 52, pollParticipation: 85 },
-//   { week: "W3", mood: 88, kudos: 38, pollParticipation: 92 },
-//   { week: "W4", mood: 92, kudos: 60, pollParticipation: 88 },
-// ];
-
-// const kudosCategories = [
-//   { name: "Teamwork", value: 35 },
-//   { name: "Innovation", value: 25 },
-//   { name: "Leadership", value: 20 },
-//   { name: "Support", value: 20 },
-// ];
-export interface IStatus {
-  name: string;
-  status: string;
-  time: string;
-}
 interface TeamOverviewProps {
   team_members: ITeamMember[];
   channel_id: string;
   team_members_status_today: IStatus[];
   team_members_status_week: IStatus[];
 }
-interface DataProps {
-  trendData: {
-    week: string;
-    mood: number;
-    kudos: number;
-    pollParticipation: number;
-  }[];
-  kudosCategories: {
-    name: string;
-    value: number;
-  }[];
-  quickestResponder: {
-    userId: string;
-    name: string;
-    avgResponseTime: number;
-  };
-  topPerformer: {
-    id: string;
-    name: string;
-    kudosReceived: number;
-    kudosGiven: number;
-    topCategory: string;
-    highlights: string[];
-  };
-  collaboration: {
-    id: string;
-    name: string;
-    kudosReceived: number;
-    avgKudosGiven: number;
-    kudosGiven: number;
-    topCategory: string;
-    highlights: string[];
-  };
-  moods: {
-    mood: string;
-    count: number;
-  }[];
-}
+
 const TeamOverview = ({
   team_members,
   team_members_status_today,
   team_members_status_week,
   channel_id,
 }: TeamOverviewProps) => {
-  // const [timeRange, setTimeRange] = useState("month");
   const [selectedMonth, setSelectedMonth] = useState(new Date());
-  // const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<DataProps>();
+  const [data, setData] = useState<IDataProps>();
 
   useEffect(() => {
     fetchLeaderBoard(selectedMonth);
@@ -153,39 +73,20 @@ const TeamOverview = ({
     (member) => member.team_id == channel_id
   );
 
-  // const generateResponseTimeData = (
-  //   teamMembers: { name: string; status: string; time: string }[]
-  // ) => {
-  //   // Helper function to extract the hour in 12-hour format with AM/PM
-  //   const extractHour = (isoString: string): string => {
-  //     const date = new Date(isoString);
-  //     const hours = date.getHours();
-  //     const period = hours >= 12 ? "PM" : "AM";
-  //     const hour12 = hours % 12 || 12; // Convert 24-hour to 12-hour format
-  //     return `${hour12} ${period}`;
-  //   };
-
-  //   // Initialize an object to count responses per hour
-  //   const hourlyCounts: Record<string, number> = {};
-
-  //   // Process each member's response time
-  //   teamMembers.forEach((member) => {
-  //     if (member.status === "responded") {
-  //       const hour = extractHour(member.time); // Properly format the time
-  //       hourlyCounts[hour] = (hourlyCounts[hour] || 0) + 1;
-  //     }
-  //   });
-
-  //   // Convert the counts object to an array of { time, count } objects
-  //   return Object.entries(hourlyCounts).map(([time, count]) => ({
-  //     time,
-  //     count,
-  //   }));
-  // };
-
   const generateParticipationData = (
     teamMembers: { name: string; status: string; time: string }[]
   ) => {
+    // Filter data with valid time and matching month
+    const filteredData = teamMembers.filter((item) => {
+      if (item.time !== "-") {
+        const itemDate = new Date(item.time);
+        return (
+          itemDate.getFullYear() === selectedMonth.getFullYear() &&
+          itemDate.getMonth() === selectedMonth.getMonth()
+        );
+      }
+      return false;
+    });
     // Helper function to extract the day of the week from the ISO string
     const getDayOfWeek = (isoString: string): string => {
       const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -205,7 +106,7 @@ const TeamOverview = ({
     };
 
     // Process each team member's data
-    teamMembers.forEach((member) => {
+    filteredData.forEach((member) => {
       if (member.time !== "-") {
         const day = getDayOfWeek(member.time);
         if (dayStats[day]) {
@@ -226,11 +127,6 @@ const TeamOverview = ({
   };
 
   const participationData = generateParticipationData(team_members_status_week);
-
-  console.log("====================================");
-  console.log("participationData=>", participationData);
-  console.log("====================================");
-  // const responseTimeData = generateResponseTimeData(team_members_status_today);
 
   const COLORS = ["#60A5FA", "#34D399", "#F87171", "#A78BFA", "#FF8C00E7"];
 
@@ -415,9 +311,6 @@ const TeamOverview = ({
         <Card className="bg-custom-secondary border-custom-secondary text-gray-300">
           <CardHeader>
             <CardTitle>Weekly Participation Rate</CardTitle>
-            {/* <CardDescription>
-              Team response rate over the past week
-            </CardDescription> */}
           </CardHeader>
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -437,25 +330,6 @@ const TeamOverview = ({
           </CardContent>
         </Card>
 
-        {/* <Card className="bg-custom-secondary border-custom-secondary text-gray-300">
-          <CardHeader>
-            <CardTitle>Response Time Distribution</CardTitle>
-            <CardDescription>
-              When team members submit their standups
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={responseTimeData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" />
-                <YAxis />
-                <Tooltip contentStyle={{ color: "#000" }} />
-                <Bar dataKey="count" fill="#4f46e5" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card> */}
         {/* Combined Trend Chart */}
         <Card className="bg-custom-secondary border-custom-secondary text-gray-300">
           <CardHeader>

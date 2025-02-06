@@ -11,16 +11,17 @@ import {
 } from "../api/team_members";
 import { Button } from "../components/ui/button";
 import { handleGenerateReport } from "../utils";
-import { ITeamMember } from "../types/interfaces";
+import { IStatus, ITeamMember, IUser } from "../types/interfaces";
 import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { useAppSelector } from "../hooks/hooks";
 import { useToast } from "../hooks/use-toast";
 import TeamKudos from "../components/team/TeamKudos";
 import TeamMembers from "../components/team/TeamMembers";
-import TeamOverview, { IStatus } from "../components/team/TeamOverview";
+import TeamOverview from "../components/team/TeamOverview";
 import TeamPollAnalytics from "../components/team/TeamPollsAnalytics";
 import TeamResponses from "../components/team/TeamResponses";
 import TeamSettings from "../components/team/TeamSettings";
+import TeamMoods from "../components/team/TeamMoods";
 
 declare module "jspdf" {
   interface jsPDF {
@@ -41,6 +42,16 @@ const ChannelDashBoard = () => {
   const { toast } = useToast();
   const { channels } = useAppSelector((state) => state.channels);
   const { standupResponses } = useAppSelector((state) => state.channels);
+
+  const storedUserData = localStorage.getItem("userData");
+  let userData: IUser | null = null;
+  if (storedUserData) {
+    try {
+      userData = JSON.parse(storedUserData);
+    } catch (error) {
+      console.error("Failed to parse userData from localStorage", error);
+    }
+  }
 
   const channel = channels?.find((item) => item.id.toString() === channel_id);
 
@@ -134,6 +145,9 @@ const ChannelDashBoard = () => {
             <TabsTrigger value="responses">Responses</TabsTrigger>
             <TabsTrigger value="kudos">Kudos</TabsTrigger>
             <TabsTrigger value="polls">Polls</TabsTrigger>
+            {userData?.is_admin && (
+              <TabsTrigger value="moods">Moods</TabsTrigger>
+            )}
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
@@ -154,6 +168,8 @@ const ChannelDashBoard = () => {
             channel_id={channel_id || ""}
             teamMembers={teamMembers}
           />
+
+          <TeamMoods channel_id={channel_id || ""} teamMembers={teamMembers} />
 
           <TeamSettings channel_id={channel_id || ""} />
         </Tabs>
