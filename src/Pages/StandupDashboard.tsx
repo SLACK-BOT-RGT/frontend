@@ -131,7 +131,8 @@ const StandupDashboard = () => {
 
   // Filter data using useMemo for performance
   const filteredData = useMemo(() => {
-    return standupResponses.filter((entry) => {
+    if (!standupResponses.length) return [];
+    return standupResponses?.filter((entry) => {
       // Team filter
       const teamMatch =
         selectedTeam === "all" ||

@@ -50,7 +50,6 @@ const RemovePollModal = ({ poll }: RemovePollModalProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        {/* <Button variant="outline">Edit Profile</Button> */}
         <Button
           variant="ghost"
           size="icon"
@@ -61,7 +60,7 @@ const RemovePollModal = ({ poll }: RemovePollModalProps) => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Delete Member</DialogTitle>
+          <DialogTitle>Delete A Poll</DialogTitle>
           <DialogDescription>
             You are about to remove poll with the question:{" "}
             <strong>{poll.question}</strong>. Click on <strong>confirm</strong>{" "}

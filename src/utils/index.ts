@@ -1,8 +1,7 @@
 import autoTable from "jspdf-autotable";
 import jsPDF from "jspdf";
-import { ITeamMember, StandupResponse } from "../types/interfaces";
+import { IDataProps, IStatus, ITeamMember, StandupResponse } from "../types/interfaces";
 import { format, startOfWeek, endOfWeek } from "date-fns";
-import { IStatus } from "../components/team/TeamOverview";
 
 declare module "jspdf" {
     interface jsPDF {
@@ -64,7 +63,7 @@ export const calculateAverageResponseTime = (
     return `${hours}:${minutes.toString().padStart(2, "0")} ${period}`;
 };
 
-export const generateTeamReport = async (teamData: TeamReport): Promise<Blob> => {
+export const generateTeamReport = async (teamData: TeamReport, data: IDataProps | undefined): Promise<Blob> => {
     // Create new PDF document
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
@@ -89,6 +88,10 @@ export const generateTeamReport = async (teamData: TeamReport): Promise<Blob> =>
         ["Total Submissions", teamData.stats.onTimeSubmissions],
         ["Average Response Time", teamData.stats.averageResponseTime],
         ["Missed Standups", teamData.stats.missedStandups],
+        ["Quick Responder", data?.quickestResponder.name || ''],
+        ["Top Performer", data?.topPerformer.name || ''],
+        ["Best Collaborator", data?.collaboration.name || ''],
+        ["Kudos Categories", data?.kudosCategories.map((item) => `${item.name}:${item.value}`) || ''],
     ];
 
     autoTable(doc, {
@@ -149,7 +152,7 @@ export const generateTeamReport = async (teamData: TeamReport): Promise<Blob> =>
     return doc.output("blob");
 };
 
-export const handleGenerateReport = async ({ teamMembers, filteredData, teamMembersStatusToday }: { teamMembers: ITeamMember[]; filteredData: StandupResponse[]; teamMembersStatusToday: IStatus[] }) => {
+export const handleGenerateReport = async ({ teamMembers, filteredData, teamMembersStatusToday, data }: { teamMembers: ITeamMember[]; filteredData: StandupResponse[]; teamMembersStatusToday: IStatus[]; data: IDataProps | undefined; }) => {
     try {
         // Get current week's date range
         const startDate = startOfWeek(new Date());
@@ -175,7 +178,7 @@ export const handleGenerateReport = async ({ teamMembers, filteredData, teamMemb
         );
 
         // Generate and download the report
-        const pdfBlob = await generateTeamReport(teamData);
+        const pdfBlob = await generateTeamReport(teamData, data);
         const url = URL.createObjectURL(pdfBlob);
         const link = document.createElement("a");
         link.href = url;

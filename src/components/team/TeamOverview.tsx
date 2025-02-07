@@ -31,7 +31,7 @@ import { IDataProps, IStatus, ITeamMember } from "../../types/interfaces";
 import { calculateAverageResponseTime } from "../../utils";
 
 import { PieChart, Pie, Cell } from "recharts";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Dispatch, SetStateAction } from "react";
 import { getMetrics } from "../../api/team_members";
 
 interface TeamOverviewProps {
@@ -39,6 +39,8 @@ interface TeamOverviewProps {
   channel_id: string;
   team_members_status_today: IStatus[];
   team_members_status_week: IStatus[];
+  setData: Dispatch<SetStateAction<IDataProps | undefined>>;
+  data: IDataProps | undefined;
 }
 
 const TeamOverview = ({
@@ -46,9 +48,10 @@ const TeamOverview = ({
   team_members_status_today,
   team_members_status_week,
   channel_id,
+  data,
+  setData,
 }: TeamOverviewProps) => {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
-  const [data, setData] = useState<IDataProps>();
 
   useEffect(() => {
     fetchLeaderBoard(selectedMonth);
@@ -76,7 +79,6 @@ const TeamOverview = ({
   const generateParticipationData = (
     teamMembers: { name: string; status: string; time: string }[]
   ) => {
-    // Filter data with valid time and matching month
     const filteredData = teamMembers.filter((item) => {
       if (item.time !== "-") {
         const itemDate = new Date(item.time);
@@ -87,7 +89,7 @@ const TeamOverview = ({
       }
       return false;
     });
-    // Helper function to extract the day of the week from the ISO string
+
     const getDayOfWeek = (isoString: string): string => {
       const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       const date = new Date(isoString);
@@ -178,7 +180,7 @@ const TeamOverview = ({
                 : (
                     (complete_members / team_members_status_today.length) *
                     100
-                  ).toFixed(2)}
+                  ).toFixed(0)}
               %
             </div>
             <div className="text-xs text-gray-500">
@@ -290,7 +292,7 @@ const TeamOverview = ({
                 <div className="p-4 bg-purple-500/20 rounded-lg">
                   <div className="flex items-center space-x-2">
                     <Users className="w-5 h-5 text-purple-500" />
-                    <span className="font-medium">Collaboration</span>
+                    <span className="font-medium">Best Collaborator</span>
                   </div>
                   <p className="mt-2 text-sm">
                     <strong className="tracking-wider">
@@ -317,7 +319,7 @@ const TeamOverview = ({
               <LineChart data={participationData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
-                <YAxis />
+                <YAxis tickFormatter={(value) => `${value}%`} />
                 <Tooltip contentStyle={{ color: "#000" }} />
                 <Line
                   type="bump"

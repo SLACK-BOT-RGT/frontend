@@ -18,21 +18,18 @@ import Loading from "../Loading";
 interface TeamMoodsProps {
   channel_id: string;
   teamMembers: ITeamMember[];
+  is_admin: boolean;
 }
-
-// Interface for individual mood entries
 interface MoodEntry {
   date: string;
   mood: number;
   note: string;
 }
-
-// Interface for the overall user moods structure
 interface UserMoods {
   [userId: string]: MoodEntry[];
 }
 
-const TeamMoods = ({ channel_id, teamMembers }: TeamMoodsProps) => {
+const TeamMoods = ({ channel_id, teamMembers, is_admin }: TeamMoodsProps) => {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [selectedPerson, setSelectedPerson] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -43,31 +40,16 @@ const TeamMoods = ({ channel_id, teamMembers }: TeamMoodsProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  console.log("====================================");
-  console.log("selectedMonth=>", selectedMonth);
-  console.log("====================================");
-
   const getTeamMoods = async (newDate: Date) => {
     setLoading(true);
     const response = await fetchTeamMoods({
       team_id: channel_id,
       month: newDate,
+      is_admin: is_admin,
     });
-    console.log("====================================");
-    console.log("fetchTeamMoods=>", response);
-    console.log("====================================");
     setData(response);
     setLoading(false);
   };
-
-  console.log("====================================");
-  console.log("teamMembers=>", teamMembers);
-  console.log("====================================");
-  // const team = [
-  //   { id: "1", name: "Sarah Parker", role: "Designer" },
-  //   { id: "2", name: "John Davis", role: "Developer" },
-  //   { id: "3", name: "Lisa Wong", role: "Product Manager" },
-  // ];
 
   const getMoodEmoji = (mood: number) => {
     if (mood == 4) return "😄";
@@ -134,6 +116,7 @@ const TeamMoods = ({ channel_id, teamMembers }: TeamMoodsProps) => {
                   value={selectedPerson}
                   onChange={(e) => setSelectedPerson(e.target.value)}
                 >
+                  <option value={""}>Select Member</option>
                   {teamMembers.map((person) => (
                     <option key={person.id} value={person.user_id}>
                       {person.User.name}

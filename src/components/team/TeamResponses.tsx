@@ -22,7 +22,8 @@ const TeamResponses = ({ channel_id }: TeamResponsesProps) => {
 
   // Filter data using useMemo for performance
   const filteredData = useMemo(() => {
-    return standupResponses.filter((entry) => {
+    if (!standupResponses.length) return [];
+    return standupResponses?.filter((entry) => {
       const filterByTeam = entry.team_id == channel_id;
       // Search query
       const searchMatch =
@@ -101,17 +102,6 @@ const TeamResponses = ({ channel_id }: TeamResponsesProps) => {
                           <p className="text-gray-200">{item.response}</p>
                         </div>
                       ))}
-                      {/* <div>
-                        <p clas<div>
-                        <p className="text-gray-400 mb-1">Yesterday</p>
-                        <p className="text-gray-200">{entry.yesterday}</p>
-                      </div>sName="text-gray-400 mb-1">Today</p>
-                        <p className="text-gray-200">{entry.today}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-400 mb-1">Blockers</p>
-                        <p className="text-gray-200">{entry.blockers}</p>
-                      </div> */}
                       <div className="text-right">
                         <span className="text-xs text-gray-400">
                           Submitted on{" "}

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { sendMagicLink } from "../api/api";
-import { useToast } from "../hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
 const Login: React.FC = () => {
   const [values, setValues] = useState({ email: "" });
-  const { toast } = useToast();
+  const [loading, setLoading] = useState<boolean>(false);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -14,24 +14,10 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log("====================================");
-    console.log("Start");
-    console.log("====================================");
-
-    // toast({
-    //   title: "Loging...",
-    //   description: (
-    //     <div className="flex items-center gap-2">
-    //       <Loader2 className="animate-spin h-4 w-4 text-gray-600" />
-    //       <span>Loading, please wait...</span>
-    //     </div>
-    //   ),
-    // });
+    setLoading(true);
     await sendMagicLink({ ...values });
+    setLoading(false);
     alert("Link has been sent to email!... Check your mail");
-    // toast({
-    //   title: "Link has been sent to email!",
-    // });
     setValues({ email: "" });
   };
 
@@ -58,9 +44,13 @@ const Login: React.FC = () => {
         <div className="flex justify-end gap-5 py-5">
           <button
             type="submit"
-            className="w-full py-2 bg-blue-500 text-white rounded-full"
+            className="w-full py-2 bg-blue-500 text-white rounded-full flex justify-center items-center"
           >
-            Login
+            {loading ? (
+              <Loader2 className="animate-spin h-6 w-6 text-white" />
+            ) : (
+              "Login"
+            )}
           </button>
         </div>
       </form>

@@ -112,7 +112,7 @@ const SideBar: React.FC<SideBarProps> = ({ isSidebarVisible }) => {
             dispatch(clearChannels());
             dispatch(clearUser());
             dispatch(clearUsers());
-            navigate("/");
+            navigate("/login");
           }}
         />
       </div>

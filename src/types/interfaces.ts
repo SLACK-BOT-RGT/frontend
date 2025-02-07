@@ -108,14 +108,14 @@ export interface StandupResponse {
 // }
 
 
-// export interface Channel {
-//     id: string;
-//     name: string;
-//     description: string;
-//     archived: string;
-//     created_at: Date;
-//     updated_at: Date;
-// }
+export interface Channel {
+    id: string;
+    name: string;
+    description: string;
+    archived: string;
+    created_at: Date;
+    updated_at: Date;
+}
 
 // export interface Post {
 //     id: number;

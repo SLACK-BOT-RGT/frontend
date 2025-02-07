@@ -514,11 +514,11 @@ export const getMetrics = async ({ team_id, month }: { team_id: string, month: D
 }
 
 
-export const fetchTeamMoods = async ({ team_id, month }: { team_id: string, month: Date }) => {
+export const fetchTeamMoods = async ({ team_id, month, is_admin }: { team_id: string, month: Date, is_admin: boolean }) => {
 
     const token = localStorage.getItem("accesstoken");
     try {
-        const response = await axios.get(`${API_URL}/moods/daily/team/${team_id}?month=${month}`, {
+        const response = await axios.get(`${API_URL}/moods/daily/team/${team_id}?month=${month}&is_admin=${is_admin}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },

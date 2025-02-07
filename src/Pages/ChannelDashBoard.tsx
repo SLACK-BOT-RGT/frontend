@@ -11,7 +11,7 @@ import {
 } from "../api/team_members";
 import { Button } from "../components/ui/button";
 import { handleGenerateReport } from "../utils";
-import { IStatus, ITeamMember, IUser } from "../types/interfaces";
+import { IDataProps, IStatus, ITeamMember, IUser } from "../types/interfaces";
 import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { useAppSelector } from "../hooks/hooks";
 import { useToast } from "../hooks/use-toast";
@@ -30,6 +30,7 @@ declare module "jspdf" {
 }
 
 const ChannelDashBoard = () => {
+  const [data, setData] = useState<IDataProps>();
   const [teamMembers, setTeamMembers] = useState<ITeamMember[]>([]);
   const [teamMembersStatusToday, setTeamMembersStatusToday] = useState<
     IStatus[]
@@ -56,7 +57,8 @@ const ChannelDashBoard = () => {
   const channel = channels?.find((item) => item.id.toString() === channel_id);
 
   const filteredData = useMemo(() => {
-    return standupResponses.filter((entry) => {
+    if (!standupResponses.length) return [];
+    return standupResponses?.filter((entry) => {
       const filterByTeam = entry.team_id === channel_id;
 
       // Define the date range
@@ -118,7 +120,7 @@ const ChannelDashBoard = () => {
               className="bg-indigo-600 hover:bg-indigo-700"
               onClick={async () => {
                 toast({
-                  title: "Export data",
+                  title: "Generate report",
                   description: (
                     <div className="flex items-center gap-2">
                       <Loader2 className="animate-spin h-4 w-4 text-gray-600" />
@@ -130,6 +132,7 @@ const ChannelDashBoard = () => {
                   filteredData,
                   teamMembers,
                   teamMembersStatusToday,
+                  data,
                 });
               }}
             >
@@ -145,9 +148,9 @@ const ChannelDashBoard = () => {
             <TabsTrigger value="responses">Responses</TabsTrigger>
             <TabsTrigger value="kudos">Kudos</TabsTrigger>
             <TabsTrigger value="polls">Polls</TabsTrigger>
-            {userData?.is_admin && (
-              <TabsTrigger value="moods">Moods</TabsTrigger>
-            )}
+            {/* {userData?.is_admin && ( */}
+            <TabsTrigger value="moods">Moods</TabsTrigger>
+            {/* )} */}
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
@@ -156,6 +159,8 @@ const ChannelDashBoard = () => {
             channel_id={channel_id || ""}
             team_members_status_today={teamMembersStatusToday || []}
             team_members_status_week={teamMembersStatusWeek || []}
+            data={data}
+            setData={setData}
           />
 
           <TeamMembers team_members={teamMembers} />
@@ -169,7 +174,11 @@ const ChannelDashBoard = () => {
             teamMembers={teamMembers}
           />
 
-          <TeamMoods channel_id={channel_id || ""} teamMembers={teamMembers} />
+          <TeamMoods
+            channel_id={channel_id || ""}
+            teamMembers={teamMembers}
+            is_admin={userData?.is_admin || false}
+          />
 
           <TeamSettings channel_id={channel_id || ""} />
         </Tabs>
